@@ -2,6 +2,9 @@ import { Routes, Route } from "react-router-dom";
 import Dashboard from "../pages/Dashboard";
 import Login from "../pages/Login";
 import NoLayout from "../layout/NoLayout"; // Layout trống cho các trang như login
+import Categories from "../pages/Categories";
+import Services from "../pages/Services";
+import Requests from "../pages/Request";
 
 export default function AppRoutes({ defaultLayout: DefaultLayout }) {
   const routes = [
@@ -13,6 +16,21 @@ export default function AppRoutes({ defaultLayout: DefaultLayout }) {
     {
       path: "/",
       element: <Dashboard />,
+      // không khai báo layout → sẽ dùng layout mặc định
+    },
+    {
+      path: "/categories",
+      element: <Categories />,
+      // không khai báo layout → sẽ dùng layout mặc định
+    },
+    {
+      path: "/services",
+      element: <Services />,
+      // không khai báo layout → sẽ dùng layout mặc định
+    },
+    {
+      path: "/requests",
+      element: <Requests />,
       // không khai báo layout → sẽ dùng layout mặc định
     },
   ];

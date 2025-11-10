@@ -2,6 +2,8 @@ import { useLocation } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import AppRoutes from "./routes/AppRouter";
 import DefaultLayout from "./layout/DefaultLayout";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const { token } = useAuth();
@@ -21,8 +23,21 @@ function App() {
     return null;
   }
 
-  // AppRoutes sẽ tự chọn layout nếu route có chỉ định, còn nếu không thì dùng DefaultLayout
-  return <AppRoutes defaultLayout={DefaultLayout} />;
+  return (
+    <>
+      <AppRoutes defaultLayout={DefaultLayout} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="colored"
+      />
+    </>
+  );
 }
 
 export default App;

@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export default function Sidebar() {
   return (
-    <aside className="w-64 bg-gray-800 text-white flex flex-col fixed h-screen">
+    <aside className="w-64 bg-gray-800 text-white flex flex-col h-screen">
       <div className="p-4 text-2xl font-bold border-b border-gray-700">
         Thợ Dụng
       </div>
