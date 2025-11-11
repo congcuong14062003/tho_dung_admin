@@ -46,6 +46,12 @@ function Requests() {
     setSelected(null);
   };
 
+
+  const handleRefresh = () => {
+    fetchRequests();
+    setSearch("");
+    setStatus("all");
+  }
   // 🔧 Hàm đổi màu trạng thái
   const getStatusColor = (stt) => {
     switch (stt) {
@@ -78,10 +84,10 @@ function Requests() {
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <input
           type="text"
-          placeholder="Tìm kiếm theo tên, địa chỉ, dịch vụ..."
+          placeholder="Tìm kiếm theo mã, tên yêu cầu, địa chỉ, dịch vụ..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border rounded px-3 py-2 w-64"
+          className="border rounded px-3 py-2 w-100"
         />
         <select
           value={status}
@@ -98,7 +104,7 @@ function Requests() {
           <option value="maintenance">Bảo trì</option>
         </select>
         <button
-          onClick={fetchRequests}
+          onClick={handleRefresh}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
           Làm mới
@@ -129,22 +135,22 @@ function Requests() {
               </tr>
             ) : (
               requests.map((item, index) => (
-                <tr key={item.id}>
-                  <td className="border p-2 text-center">{index + 1}</td>
-                  <td className="border p-2">{item.user_name}</td>
-                  <td className="border p-2">{item.service_name}</td>
-                  <td className="border p-2">{item.address}</td>
+                <tr key={item?.id}>
+                  <td className="border p-2 text-center">{item?.id}</td>
+                  <td className="border p-2">{item?.customer_name}</td>
+                  <td className="border p-2">{item?.service_name}</td>
+                  <td className="border p-2">{item?.address}</td>
                   <td className="border p-2 text-center">
                     <span
                       className={`px-2 py-1 rounded text-white ${getStatusColor(
-                        item.status
+                        item?.status
                       )}`}
                     >
-                      {item.status}
+                      {item?.status}
                     </span>
                   </td>
                   <td className="border p-2 text-center">
-                    {item.requested_time}
+                    {item?.requested_time} {item?.requested_date}
                   </td>
                   <td className="border p-2 text-center">
                     <button

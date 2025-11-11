@@ -96,7 +96,11 @@ export default function RequestDetail({ open, onClose, requestId }) {
               </Grid>
 
               {request.technician_name && (
-                <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
+                <Grid
+                  item
+                  xs={6}
+                  sx={{ display: "flex", alignItems: "center" }}
+                >
                   <Avatar
                     src={request.technician_avatar}
                     alt={request.technician_name}
@@ -126,6 +130,9 @@ export default function RequestDetail({ open, onClose, requestId }) {
               {request.service_description || "—"}
             </Typography>
             <Typography variant="body1" sx={{ mb: 1 }}>
+              <strong>Số điện thoại:</strong> {request.customer_phone || "—"}
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 1 }}>
               <strong>Địa chỉ:</strong> {request.address || "—"}
             </Typography>
             <Typography variant="body1" sx={{ mb: 1 }}>
@@ -139,8 +146,8 @@ export default function RequestDetail({ open, onClose, requestId }) {
             </Typography>
 
             <Typography variant="body1" sx={{ mb: 1 }}>
-              <strong>Thời gian yêu cầu:</strong>{" "}
-              {formatDate(request.requested_time)}
+              <strong>Thời gian yêu cầu sửa chữa:</strong>{" "}
+              {request.requested_time} {request.requested_date}
             </Typography>
             <Typography variant="body1" sx={{ mb: 1 }}>
               <strong>Tạo lúc:</strong> {formatDate(request.created_at)}
@@ -166,52 +173,46 @@ export default function RequestDetail({ open, onClose, requestId }) {
                   Hình ảnh liên quan
                 </Typography>
 
-                {["survey", "in_progress", "completed", "issue", "handover"].map(
-                  (type) => {
-                    const imgs = request.images.filter(
-                      (img) => img.type === type
-                    );
-                    if (imgs.length === 0) return null;
-                    return (
-                      <Box key={type} sx={{ mb: 2 }}>
-                        <Typography
-                          variant="body2"
-                          fontWeight={500}
-                          sx={{ mb: 1, textTransform: "capitalize" }}
-                        >
-                          {type === "survey"
-                            ? "Ảnh khảo sát"
-                            : type === "in_progress"
-                            ? "Trong quá trình làm"
-                            : type === "completed"
-                            ? "Ảnh hoàn thành"
-                            : type === "issue"
-                            ? "Sự cố"
-                            : "Bàn giao"}
-                        </Typography>
+                {["pending"].map((type) => {
+                  const imgs = request.images.filter(
+                    (img) => img.type === type
+                  );
+                  if (imgs.length === 0) return null;
+                  return (
+                    <Box key={type} sx={{ mb: 2 }}>
+                      <Typography
+                        variant="body2"
+                        fontWeight={500}
+                        sx={{ mb: 1, textTransform: "capitalize" }}
+                      >
+                        {type === "pending"
+                          ? "Ảnh tình trạng"
+                          : type === "survey"
+                          ? "Ảnh khảo sát"
+                          : type === "completion"}
+                      </Typography>
 
-                        <Grid container spacing={1}>
-                          {imgs.map((img, idx) => (
-                            <Grid item xs={4} key={idx}>
-                              <Box
-                                component="img"
-                                src={img.image_url}
-                                alt={img.type}
-                                sx={{
-                                  width: "100%",
-                                  height: 120,
-                                  objectFit: "cover",
-                                  borderRadius: "8px",
-                                  cursor: "pointer",
-                                }}
-                              />
-                            </Grid>
-                          ))}
-                        </Grid>
-                      </Box>
-                    );
-                  }
-                )}
+                      <Grid container spacing={1}>
+                        {imgs.map((img, idx) => (
+                          <Grid item xs={4} key={idx}>
+                            <Box
+                              component="img"
+                              src={img.image_url}
+                              alt={img.type}
+                              sx={{
+                                width: "100%",
+                                height: 120,
+                                objectFit: "cover",
+                                borderRadius: "8px",
+                                cursor: "pointer",
+                              }}
+                            />
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </Box>
+                  );
+                })}
               </>
             )}
 

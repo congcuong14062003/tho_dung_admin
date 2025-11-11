@@ -20,6 +20,7 @@ export default function CategoryForm({ open, onClose, category }) {
     name: "",
     description: "",
     icon: null,
+    color: "#ffffff", // ✅ thêm mặc định
   });
   const [preview, setPreview] = useState(null);
 
@@ -29,15 +30,21 @@ export default function CategoryForm({ open, onClose, category }) {
         name: category.name || "",
         description: category.description || "",
         icon: null,
+        color: category.color || "#ffffff", // ✅ load lại màu khi sửa
       });
       setPreview(category.icon || null);
     } else {
-      setFormData({ name: "", description: "", icon: null });
+      setFormData({
+        name: "",
+        description: "",
+        icon: null,
+        color: "#ffffff",
+      });
       setPreview(null);
     }
   }, [category]);
 
-  // 📝 Xử lý thay đổi input text
+  // 📝 Xử lý thay đổi input text / color
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -47,42 +54,43 @@ export default function CategoryForm({ open, onClose, category }) {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setFormData((prev) => ({ ...prev, icon: file }));
-    if (file) {
-      setPreview(URL.createObjectURL(file));
-    }
+    if (file) setPreview(URL.createObjectURL(file));
   };
 
   // ✅ Submit form
   const handleSubmit = async () => {
-    if (!formData.name.trim()) return;
+    if (!formData.name.trim()) {
+      toast.warn("Tên danh mục không được để trống!");
+      return;
+    }
 
-    // Dùng FormData để gửi file
     const data = new FormData();
     data.append("name", formData.name);
     data.append("description", formData.description);
+    data.append("color", formData.color); // ✅ gửi thêm color
     if (formData.icon) data.append("icon", formData.icon);
-    try {
-      if (category) {
-        const result = await categoryApi.update(category.id, data);
-        console.log("result: ", result);
 
-        if (result.status) {
-          toast.success("Cập nhật danh mục thành công!");
-        } else {
-          toast.error(result.message || "Cập nhật danh mục thất bại!");
-        }
+    try {
+      let result;
+      if (category) {
+        result = await categoryApi.update(category.id, data);
+        if (result.status) toast.success("Cập nhật danh mục thành công!");
+        else toast.error(result.message || "Cập nhật danh mục thất bại!");
       } else {
-        const result = await categoryApi.create(data);
+        result = await categoryApi.create(data);
         if (result.status) {
           toast.success("Thêm mới danh mục thành công!");
+          setFormData({ name: "", description: "", icon: null, color: "#ffffff" });
+          setPreview(null);
         } else {
           toast.error(result.message || "Thêm mới danh mục thất bại!");
         }
       }
+
       onClose();
     } catch (error) {
       console.error("Lỗi lưu danh mục:", error);
-      alert("Có lỗi xảy ra!");
+      toast.error("Có lỗi xảy ra!");
     }
   };
 
@@ -113,6 +121,28 @@ export default function CategoryForm({ open, onClose, category }) {
           sx={{ mb: 2 }}
         />
 
+        {/* 🎨 Thêm chọn màu */}
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body2" mb={1}>
+            Màu hiển thị:
+          </Typography>
+          <input
+            type="color"
+            name="color"
+            value={formData.color}
+            onChange={handleChange}
+            style={{
+              width: 60,
+              height: 40,
+              border: "none",
+              background: "transparent",
+              cursor: "pointer",
+            }}
+          />
+          <span style={{ marginLeft: 8 }}>{formData.color}</span>
+        </Box>
+
+        {/* 🖼️ Icon */}
         <Box sx={{ mb: 2 }}>
           <Typography variant="body2" mb={1}>
             Ảnh đại diện (icon):
@@ -144,10 +174,7 @@ export default function CategoryForm({ open, onClose, category }) {
           )}
         </Box>
 
-        <Box
-          mt={3}
-          sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}
-        >
+        <Box mt={3} sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
           <Button onClick={onClose}>Hủy</Button>
           <Button variant="contained" onClick={handleSubmit}>
             Lưu
