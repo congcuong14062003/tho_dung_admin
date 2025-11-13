@@ -4,6 +4,8 @@ import AppRoutes from "./routes/AppRouter";
 import DefaultLayout from "./layout/DefaultLayout";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { LoadingProvider } from "./context/LoadingContext";
+import Loading from "./components/Loading/Loading";
 
 function App() {
   const { token } = useAuth();
@@ -24,7 +26,7 @@ function App() {
   }
 
   return (
-    <>
+    <LoadingProvider>
       <AppRoutes defaultLayout={DefaultLayout} />
       <ToastContainer
         position="top-right"
@@ -36,7 +38,8 @@ function App() {
         draggable
         theme="colored"
       />
-    </>
+      <Loading />
+    </LoadingProvider>
   );
 }
 

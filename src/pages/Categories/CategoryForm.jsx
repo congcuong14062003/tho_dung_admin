@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Modal, Box, TextField, Button, Typography } from "@mui/material";
 import categoryApi from "../../service/api/categoryApi";
 import { toast } from "react-toastify";
+import { useLoading } from "../../context/LoadingContext";
 
 const style = {
   position: "absolute",
@@ -16,6 +17,7 @@ const style = {
 };
 
 export default function CategoryForm({ open, onClose, category }) {
+  const { setLoading } = useLoading();
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -64,6 +66,8 @@ export default function CategoryForm({ open, onClose, category }) {
       return;
     }
 
+    setLoading(true);
+
     const data = new FormData();
     data.append("name", formData.name);
     data.append("description", formData.description);
@@ -76,21 +80,23 @@ export default function CategoryForm({ open, onClose, category }) {
         result = await categoryApi.update(category.id, data);
         if (result.status) toast.success("Cập nhật danh mục thành công!");
         else toast.error(result.message || "Cập nhật danh mục thất bại!");
+        onClose();
       } else {
         result = await categoryApi.create(data);
         if (result.status) {
           toast.success("Thêm mới danh mục thành công!");
           setFormData({ name: "", description: "", icon: null, color: "#ffffff" });
           setPreview(null);
+          onClose();
         } else {
           toast.error(result.message || "Thêm mới danh mục thất bại!");
         }
       }
-
-      onClose();
     } catch (error) {
       console.error("Lỗi lưu danh mục:", error);
       toast.error("Có lỗi xảy ra!");
+    } finally {
+      setLoading(false);
     }
   };
 

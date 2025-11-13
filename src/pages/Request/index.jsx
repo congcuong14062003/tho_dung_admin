@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import requestApi from "../../service/api/requestApi";
 import RequestDetail from "./RequestDetail";
+import { STATUS_CONFIG } from "../../config/statusConfig";
 
 function Requests() {
   const [requests, setRequests] = useState([]);
@@ -44,34 +45,37 @@ function Requests() {
   const handleCloseModal = () => {
     setOpenModal(false);
     setSelected(null);
+    fetchRequests();
   };
-
 
   const handleRefresh = () => {
     fetchRequests();
     setSearch("");
     setStatus("all");
-  }
-  // 🔧 Hàm đổi màu trạng thái
-  const getStatusColor = (stt) => {
-    switch (stt) {
-      case "pending":
-        return "bg-yellow-500";
-      case "assigned":
-        return "bg-blue-400";
-      case "quoted":
-        return "bg-purple-500";
-      case "in_progress":
-        return "bg-sky-500";
-      case "completed":
-        return "bg-green-600";
-      case "cancelled":
-        return "bg-red-500";
-      case "maintenance":
-        return "bg-gray-500";
-      default:
-        return "bg-gray-400";
-    }
+  };
+
+  // (Sử dụng arbitrary Tailwind cho bg và text dựa trên hex color)
+  const renderStatus = (stt) => {
+    const s = STATUS_CONFIG[stt] || {
+      label: "Không xác định",
+      color: "#6B7280", // Mặc định xám
+      icon: ShieldAlert,
+    };
+    const Icon = s.icon || ShieldAlert; // Fallback icon
+    return (
+      <button
+        type="button"
+        className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border transition hover:opacity-90"
+        style={{
+          backgroundColor: `${s.color}1A`, // 1A = ~10% opacity in hex, nếu muốn 30% thì dùng 4D
+          color: s.color,
+          borderColor: s.color,
+        }}
+      >
+        <Icon size={14} strokeWidth={2} />
+        {s.label}
+      </button>
+    );
   };
 
   return (
@@ -96,6 +100,7 @@ function Requests() {
         >
           <option value="all">Tất cả trạng thái</option>
           <option value="pending">Đang chờ</option>
+          <option value="assigning">Đang phân công</option>
           <option value="assigned">Đã phân công</option>
           <option value="quoted">Đã báo giá</option>
           <option value="in_progress">Đang xử lý</option>
@@ -141,13 +146,7 @@ function Requests() {
                   <td className="border p-2">{item?.service_name}</td>
                   <td className="border p-2">{item?.address}</td>
                   <td className="border p-2 text-center">
-                    <span
-                      className={`px-2 py-1 rounded text-white ${getStatusColor(
-                        item?.status
-                      )}`}
-                    >
-                      {item?.status}
-                    </span>
+                    {renderStatus(item?.status)}
                   </td>
                   <td className="border p-2 text-center">
                     {item?.requested_time} {item?.requested_date}
@@ -172,6 +171,7 @@ function Requests() {
           open={openModal}
           onClose={handleCloseModal}
           requestId={selected.id}
+          handleGetList={fetchRequests}
         />
       )}
     </div>

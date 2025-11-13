@@ -1,16 +1,15 @@
 import { useState, useEffect } from "react";
 import CategoryForm from "./CategoryForm";
 import categoryApi from "../../service/api/categoryApi";
+import { useLoading } from "../../context/LoadingContext";
 
 function Categories() {
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [selected, setSelected] = useState(null);
-
+  const { setLoading } = useLoading();
   // 🧩 Thêm state tìm kiếm
   const [search, setSearch] = useState("");
-
   // 🔹 Lấy danh sách danh mục
   const fetchCategories = async () => {
     setLoading(true);
@@ -99,63 +98,59 @@ function Categories() {
         </button>
       </div>
 
-      {loading ? (
-        <p>Đang tải...</p>
-      ) : (
-        <table className="w-full border border-gray-300 text-sm">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border p-2">Mã danh mục</th>
-              <th className="border p-2">Tên danh mục</th>
-              <th className="border p-2">Mô tả</th>
-              <th className="border p-2">Ảnh</th>
-              <th className="border p-2 text-center">Hành động</th>
+      <table className="w-full border border-gray-300 text-sm">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border p-2">Mã danh mục</th>
+            <th className="border p-2">Tên danh mục</th>
+            <th className="border p-2">Mô tả</th>
+            <th className="border p-2">Ảnh</th>
+            <th className="border p-2 text-center">Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          {categories.length === 0 ? (
+            <tr>
+              <td colSpan="5" className="text-center p-4">
+                Không có danh mục nào
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {categories.length === 0 ? (
-              <tr>
-                <td colSpan="5" className="text-center p-4">
-                  Không có danh mục nào
+          ) : (
+            categories.map((item) => (
+              <tr key={item?.id}>
+                <td className="border p-2 text-center">{item?.id}</td>
+                <td className="border p-2">{item?.name}</td>
+                <td className="border p-2">{item?.description}</td>
+                <td className="border p-2 text-center">
+                  {item?.icon ? (
+                    <img
+                      src={item?.icon}
+                      alt=""
+                      className="w-10 h-10 mx-auto rounded"
+                    />
+                  ) : (
+                    "-"
+                  )}
+                </td>
+                <td className="border p-2 text-center space-x-2">
+                  <button
+                    onClick={() => handleEdit(item)}
+                    className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                  >
+                    Sửa
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item?.id)}
+                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                  >
+                    Xóa
+                  </button>
                 </td>
               </tr>
-            ) : (
-              categories.map((item) => (
-                <tr key={item?.id}>
-                  <td className="border p-2 text-center">{item?.id}</td>
-                  <td className="border p-2">{item?.name}</td>
-                  <td className="border p-2">{item?.description}</td>
-                  <td className="border p-2 text-center">
-                    {item?.icon ? (
-                      <img
-                        src={item?.icon}
-                        alt=""
-                        className="w-10 h-10 mx-auto rounded"
-                      />
-                    ) : (
-                      "-"
-                    )}
-                  </td>
-                  <td className="border p-2 text-center space-x-2">
-                    <button
-                      onClick={() => handleEdit(item)}
-                      className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
-                    >
-                      Sửa
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item?.id)}
-                      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                    >
-                      Xóa
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      )}
+            ))
+          )}
+        </tbody>
+      </table>
 
       {/* Form thêm/sửa danh mục */}
       <CategoryForm

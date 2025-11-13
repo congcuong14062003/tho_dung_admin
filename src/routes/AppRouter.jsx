@@ -6,7 +6,7 @@ import Categories from "../pages/Categories";
 import Services from "../pages/Services";
 import Requests from "../pages/Request";
 
-export default function AppRoutes({ defaultLayout: DefaultLayout }) {
+export default function AppRoutes({setLoading, defaultLayout: DefaultLayout }) {
   const routes = [
     {
       path: "/login",
