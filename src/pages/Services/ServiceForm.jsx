@@ -10,6 +10,7 @@ import {
 import categoryApi from "../../service/api/categoryApi";
 import serviceApi from "../../service/api/serviceApi";
 import { toast } from "react-toastify";
+import { useLoading } from "../../context/LoadingContext";
 
 const style = {
   position: "absolute",
@@ -24,6 +25,7 @@ const style = {
 };
 
 export default function ServiceForm({ open, onClose, service }) {
+  const { setLoading } = useLoading();
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -33,11 +35,13 @@ export default function ServiceForm({ open, onClose, service }) {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    categoryApi.getList({ page: 1, size: 50, keySearch: "" }).then((res) => {
-      if (res.status && res?.data?.data) {
-        setCategories(res.data.data);
-      }
-    });
+    if (open) {
+      categoryApi.getList({ page: 1, size: 50, keySearch: "" }).then((res) => {
+        if (res.status && res?.data?.data) {
+          setCategories(res.data.data);
+        }
+      });
+    }
 
     if (service) {
       setFormData({
@@ -54,7 +58,7 @@ export default function ServiceForm({ open, onClose, service }) {
         category_id: "",
       });
     }
-  }, [service]);
+  }, [open, service]); // 👈 thêm open vào đây
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -71,6 +75,7 @@ export default function ServiceForm({ open, onClose, service }) {
       toast.warning("Vui lòng chọn danh mục");
       return;
     }
+    setLoading(true);
 
     try {
       if (service) {
@@ -85,6 +90,7 @@ export default function ServiceForm({ open, onClose, service }) {
       console.error(error);
       toast.error("Lưu dịch vụ thất bại!");
     } finally {
+      setLoading(false);
     }
   };
 

@@ -2,8 +2,8 @@ import axiosClient from "./axiosClient";
 
 const categoryApi = {
   // 🔹 Lấy danh sách danh mục (có phân trang)
-  getList: (params) => {
-    return axiosClient.post("/categories/list-category", params);
+  getList: (data) => {
+    return axiosClient.post("/categories/list-category", data);
   },
 
   // 🔹 Thêm mới danh mục
