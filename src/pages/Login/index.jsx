@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import authApi from "../../service/api/authApi";
+import { toast } from "react-toastify";
 
 export default function Login() {
   const { login } = useAuth();
@@ -16,21 +18,13 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:2003/apis/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, password }),
-      });
-      const data = await res.json();
-
-      if (!data.status) {
-        setError(data.message || "Sai thông tin đăng nhập!");
-        setLoading(false);
-        return;
+      const res = await authApi.login({ phone, password });
+      if (res.status) {
+        login(res.data.token);
+        navigate("/"); // vào trang chủ luôn
+      } else {
+        toast.error(res.message);
       }
-
-      login(data.data.token);
-      navigate("/"); // vào trang chủ luôn
     } catch (err) {
       console.error(err);
       setError("Lỗi kết nối server!");
@@ -42,7 +36,9 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-indigo-100 to-blue-200">
       <div className="bg-white shadow-2xl rounded-2xl p-10 w-[90%] max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-8">Đăng nhập hệ thống</h2>
+        <h2 className="text-2xl font-bold text-center mb-8">
+          Đăng nhập hệ thống
+        </h2>
 
         <form onSubmit={handleLogin} className="space-y-5">
           <input

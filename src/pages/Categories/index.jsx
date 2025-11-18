@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import CategoryForm from "./CategoryForm";
 import categoryApi from "../../service/api/categoryApi";
 import { useLoading } from "../../context/LoadingContext";
+import { toast } from "react-toastify";
 
 function Categories() {
   const [categories, setCategories] = useState([]);
@@ -38,13 +39,16 @@ function Categories() {
   }, [search]);
 
   const handleDelete = async (id) => {
-    if (window.confirm("Xác nhận xóa danh mục này?")) {
-      try {
-        await categoryApi.delete(id);
-        fetchCategories();
-      } catch (error) {
-        alert("Không thể xóa danh mục");
+    try {
+      const res = await categoryApi.delete(id);
+      if (res?.status) {
+        toast?.success(res?.message);
+      } else {
+        toast.error(res?.message);
       }
+      fetchCategories();
+    } catch (error) {
+      toast.error("Không thể xóa danh mục");
     }
   };
 

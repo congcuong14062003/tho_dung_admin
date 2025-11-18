@@ -85,7 +85,12 @@ export default function CategoryForm({ open, onClose, category }) {
         result = await categoryApi.create(data);
         if (result.status) {
           toast.success("Thêm mới danh mục thành công!");
-          setFormData({ name: "", description: "", icon: null, color: "#ffffff" });
+          setFormData({
+            name: "",
+            description: "",
+            icon: null,
+            color: "#ffffff",
+          });
           setPreview(null);
           onClose();
         } else {
@@ -180,7 +185,10 @@ export default function CategoryForm({ open, onClose, category }) {
           )}
         </Box>
 
-        <Box mt={3} sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
+        <Box
+          mt={3}
+          sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}
+        >
           <Button onClick={onClose}>Hủy</Button>
           <Button variant="contained" onClick={handleSubmit}>
             Lưu

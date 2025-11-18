@@ -2,13 +2,22 @@ import { useState, useEffect } from "react";
 import requestApi from "../../service/api/requestApi";
 import RequestDetail from "./RequestDetail";
 import { STATUS_CONFIG } from "../../config/statusConfig";
-
+import { toast } from "react-toastify";
+import { useLoading } from "../../context/LoadingContext";
+import {
+  Clock,
+  UserCheck,
+  DollarSign,
+  Wrench,
+  CheckCircle,
+  XCircle,
+  ShieldAlert,
+} from "lucide-react"; // Thêm import icons từ lucide-react
 function Requests() {
   const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState(null);
   const [openModal, setOpenModal] = useState(false);
-
+  const { setLoading } = useLoading();
   // 🧩 Bộ lọc
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
@@ -24,6 +33,8 @@ function Requests() {
       });
       if (res.status && res.data?.data) {
         setRequests(res.data.data);
+      } else {
+        toast.error(res?.message);
       }
     } catch (error) {
       console.error("Lỗi khi lấy danh sách yêu cầu:", error);
@@ -99,15 +110,14 @@ function Requests() {
           className="border rounded px-3 py-2"
         >
           <option value="all">Tất cả trạng thái</option>
-          <option value="pending">Đang chờ</option>
-          <option value="assigning">Đang phân công</option>
-          <option value="assigned">Đã phân công</option>
-          <option value="quoted">Đã báo giá</option>
-          <option value="in_progress">Đang xử lý</option>
-          <option value="completed">Hoàn thành</option>
-          <option value="cancelled">Đã hủy</option>
-          <option value="maintenance">Bảo trì</option>
+
+          {Object.entries(STATUS_CONFIG).map(([key, s]) => (
+            <option key={key} value={key}>
+              {s.label}
+            </option>
+          ))}
         </select>
+
         <button
           onClick={handleRefresh}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
@@ -116,55 +126,51 @@ function Requests() {
         </button>
       </div>
 
-      {loading ? (
-        <p>Đang tải...</p>
-      ) : (
-        <table className="w-full border border-gray-300 text-sm">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border p-2">Mã yêu cầu</th>
-              <th className="border p-2">Người yêu cầu</th>
-              <th className="border p-2">Dịch vụ</th>
-              <th className="border p-2">Địa chỉ</th>
-              <th className="border p-2 text-center">Trạng thái</th>
-              <th className="border p-2 text-center">Ngày yêu cầu</th>
-              <th className="border p-2 text-center">Hành động</th>
+      <table className="w-full border border-gray-300 text-sm">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border p-2">Mã yêu cầu</th>
+            <th className="border p-2">Người yêu cầu</th>
+            <th className="border p-2">Dịch vụ</th>
+            <th className="border p-2">Địa chỉ</th>
+            <th className="border p-2 text-center">Trạng thái</th>
+            <th className="border p-2 text-center">Ngày yêu cầu</th>
+            <th className="border p-2 text-center">Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          {requests.length === 0 ? (
+            <tr>
+              <td colSpan="7" className="text-center p-4">
+                Không có yêu cầu nào
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {requests.length === 0 ? (
-              <tr>
-                <td colSpan="7" className="text-center p-4">
-                  Không có yêu cầu nào
+          ) : (
+            requests.map((item, index) => (
+              <tr key={item?.id}>
+                <td className="border p-2 text-center">{item?.id}</td>
+                <td className="border p-2">{item?.customer_name}</td>
+                <td className="border p-2">{item?.service_name}</td>
+                <td className="border p-2">{item?.address}</td>
+                <td className="border p-2 text-center">
+                  {renderStatus(item?.status)}
+                </td>
+                <td className="border p-2 text-center">
+                  {item?.requested_time} {item?.requested_date}
+                </td>
+                <td className="border p-2 text-center">
+                  <button
+                    onClick={() => handleViewDetail(item)}
+                    className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                  >
+                    Xem chi tiết
+                  </button>
                 </td>
               </tr>
-            ) : (
-              requests.map((item, index) => (
-                <tr key={item?.id}>
-                  <td className="border p-2 text-center">{item?.id}</td>
-                  <td className="border p-2">{item?.customer_name}</td>
-                  <td className="border p-2">{item?.service_name}</td>
-                  <td className="border p-2">{item?.address}</td>
-                  <td className="border p-2 text-center">
-                    {renderStatus(item?.status)}
-                  </td>
-                  <td className="border p-2 text-center">
-                    {item?.requested_time} {item?.requested_date}
-                  </td>
-                  <td className="border p-2 text-center">
-                    <button
-                      onClick={() => handleViewDetail(item)}
-                      className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                    >
-                      Xem chi tiết
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      )}
+            ))
+          )}
+        </tbody>
+      </table>
 
       {openModal && (
         <RequestDetail

@@ -51,9 +51,16 @@ function Services() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Xóa dịch vụ này?")) {
-      await serviceApi.delete(id);
+    try {
+      const res = await serviceApi.delete(id);
+      if (res?.status) {
+        toast?.success(res?.message);
+      } else {
+        toast.error(res?.message);
+      }
       fetchServices(selectedCategory, search);
+    } catch (error) {
+      toast.error("Không thể xóa danh mục");
     }
   };
 

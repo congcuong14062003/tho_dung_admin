@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import requestApi from "../../service/api/requestApi";
 import AssignWorkerModal from "./AssignWorkerModal";
+import { STATUS_CONFIG } from "../../config/statusConfig";
 
 const style = {
   position: "absolute",
@@ -39,6 +40,35 @@ const hexToRgba = (hex, opacity = 1) => {
         16
       )}, ${opacity})`
     : hex;
+};
+const renderStatus = (stt) => {
+  const s = STATUS_CONFIG[stt] || {
+    label: "Không xác định",
+    color: "#6B7280",
+    icon: ShieldAlert,
+  };
+
+  const Icon = s.icon;
+
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "6px",
+        padding: "4px 10px",
+        borderRadius: "20px",
+        fontSize: "12px",
+        fontWeight: 500,
+        border: `1px solid ${s.color}`,
+        color: s.color,
+        backgroundColor: `${s.color}1A`, // 10% opacity
+      }}
+    >
+      <Icon size={14} strokeWidth={2} />
+      {s.label}
+    </span>
+  );
 };
 
 export default function RequestDetail({
@@ -170,8 +200,7 @@ export default function RequestDetail({
           <strong>Dịch vụ:</strong> {request.service?.name}
         </Typography>
         <Typography sx={{ mb: 1 }}>
-          <strong>Trạng thái:</strong>{" "}
-          <span style={{ textTransform: "capitalize" }}>{request.status}</span>
+          <strong>Trạng thái:</strong> {renderStatus(request.status)}
         </Typography>
 
         {/* 3️⃣ Thông tin kỹ thuật viên */}
@@ -312,7 +341,7 @@ export default function RequestDetail({
           {request.status === "pending" && (
             <Button
               variant="contained"
-              color="red"
+              color="success"
               onClick={() => setOpenAssign(true)}
               sx={{ mr: 2 }}
             >

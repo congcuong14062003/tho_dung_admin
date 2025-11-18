@@ -1,4 +1,3 @@
-// 💡 Cập nhật STATUS_CONFIG với icon, sử dụng các icon phù hợp từ lucide-react
 import {
   Clock,
   UserCheck,
@@ -7,18 +6,22 @@ import {
   CheckCircle,
   XCircle,
   ShieldAlert,
-} from "lucide-react"; // Thêm import icons từ lucide-react
+  Eye,
+  CreditCard,
+} from "lucide-react";
 
 export const Colors = {
   status: {
-    pending: "#FACC15", // vàng - chờ xử lý
-    assigning: "#F59E0B", // cam - đang gán thợ
-    assigned: "#3B82F6", // xanh dương - đã giao thợ
-    quoted: "#8B5CF6", // tím - đã báo giá
-    inProgress: "#0EA5E9", // xanh da trời - đang làm
-    completed: "#22C55E", // xanh lá - hoàn thành
-    cancelled: "#EF4444", // đỏ - đã hủy
-    maintenance: "#6B7280", // xám - bảo trì
+    pending: "#FACC15",
+    assigning: "#F59E0B",
+    assigned: "#3B82F6",
+    quoted: "#8B5CF6",
+    inProgress: "#0EA5E9",
+    customerReview: "#3B82F6",   // ⭐ Mới
+    payment: "#F59E0B",          // ⭐ Mới
+    completed: "#22C55E",
+    cancelled: "#EF4444",
+    maintenance: "#6B7280",
   },
 };
 
@@ -26,41 +29,55 @@ export const STATUS_CONFIG = {
   pending: {
     label: "Đang chờ xử lý",
     color: Colors.status.pending,
-    icon: Clock, // Icon chờ
+    icon: Clock,
   },
   assigning: {
     label: "Đang gán thợ",
     color: Colors.status.assigning,
-    icon: UserCheck, // Icon gán user
+    icon: UserCheck,
   },
   assigned: {
     label: "Đã giao thợ",
     color: Colors.status.assigned,
-    icon: UserCheck, // Hoặc icon khác nếu cần
+    icon: UserCheck,
   },
   quoted: {
     label: "Đã báo giá",
     color: Colors.status.quoted,
-    icon: DollarSign, // Icon tiền/báo giá
+    icon: DollarSign,
   },
   in_progress: {
     label: "Đang thực hiện",
     color: Colors.status.inProgress,
-    icon: Wrench, // Icon công cụ
+    icon: Wrench,
   },
+
+  // ⭐⭐ TRẠNG THÁI MỚI ⭐⭐
+  customer_review: {
+    label: "Khách đang xem xét",
+    color: Colors.status.customerReview,
+    icon: Eye,
+  },
+  payment: {
+    label: "Đang thanh toán",
+    color: Colors.status.payment,
+    icon: CreditCard,
+  },
+  // ⭐⭐ END ⭐⭐
+
   completed: {
     label: "Hoàn thành",
     color: Colors.status.completed,
-    icon: CheckCircle, // Icon check
+    icon: CheckCircle,
   },
   cancelled: {
     label: "Đã hủy",
     color: Colors.status.cancelled,
-    icon: XCircle, // Icon X
+    icon: XCircle,
   },
   maintenance: {
     label: "Bảo trì định kỳ",
     color: Colors.status.maintenance,
-    icon: ShieldAlert, // Icon bảo trì/cảnh báo
+    icon: ShieldAlert,
   },
 };

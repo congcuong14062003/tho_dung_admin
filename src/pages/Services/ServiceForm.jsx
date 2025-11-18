@@ -79,11 +79,20 @@ export default function ServiceForm({ open, onClose, service }) {
 
     try {
       if (service) {
-        await serviceApi.update(service.id, formData);
-        toast.success("Cập nhật dịch vụ thành công!");
+        const res = await serviceApi.update(service.id, formData);
+
+        if (res?.status) {
+          toast?.success(res?.message);
+        } else {
+          toast.error(res?.message);
+        }
       } else {
-        await serviceApi.create(formData);
-        toast.success("Thêm dịch vụ thành công!");
+        const res = await serviceApi.create(formData);
+        if (res?.status) {
+          toast?.success(res?.message);
+        } else {
+          toast.error(res?.message);
+        }
       }
       onClose(); // Đóng modal
     } catch (error) {
