@@ -16,8 +16,9 @@ import {
 } from "@mui/material";
 import requestApi from "../../service/api/requestApi";
 import AssignWorkerModal from "./AssignWorkerModal";
-import { STATUS_CONFIG } from "../../config/statusConfig";
-
+import { STATUS_CONFIG, STATUS_CONFIG_PAYMENT } from "../../config/statusConfig";
+import paymentApi from "../../service/api/paymentApi";
+import { ShieldAlert } from "lucide-react";
 const style = {
   position: "absolute",
   top: "50%",
@@ -42,7 +43,7 @@ const hexToRgba = (hex, opacity = 1) => {
     : hex;
 };
 const renderStatus = (stt) => {
-  const s = STATUS_CONFIG[stt] || {
+  const s = STATUS_CONFIG_PAYMENT[stt] || {
     label: "Không xác định",
     color: "#6B7280",
     icon: ShieldAlert,
@@ -78,6 +79,7 @@ export default function RequestDetail({
   handleGetList,
 }) {
   const [request, setRequest] = useState(null);
+  const [paymentDetail, setPaymentDetail] = useState(null);
   const [loading, setLoading] = useState(false);
   const [openAssign, setOpenAssign] = useState(false);
   const formatDate = (dateStr) =>
@@ -104,7 +106,25 @@ export default function RequestDetail({
     };
 
     fetchDetail();
+    handleGetDetailPayment();
   }, [open, requestId]);
+
+  const handleGetDetailPayment = async () => {
+    setLoading(true);
+    try {
+      const res = await paymentApi.getDetail(requestId);
+      if (res.status && res.data) {
+        setPaymentDetail(res.data);
+      } else {
+        setPaymentDetail(null);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy chi tiết payment:", error);
+      setPaymentDetail(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -335,6 +355,130 @@ export default function RequestDetail({
           <Typography color="error">
             <strong>Lý do hủy:</strong> {request.cancel_reason}
           </Typography>
+        )}
+
+        {/* 7️⃣ Thanh toán */}
+        <Divider sx={{ my: 2 }} />
+
+        {/* Khi đã load paymentDetail */}
+        {paymentDetail && (
+          <>
+            <Typography variant="subtitle1" fontWeight={600} mb={1}>
+              Thông tin thanh toán
+            </Typography>
+            <Box
+              sx={{
+                p: 2,
+                border: "1px solid #eee",
+                borderRadius: 2,
+                mb: 2,
+                background: "#fafafa",
+              }}
+            >
+              <Typography>
+                <strong>Mã thanh toán:</strong> {paymentDetail.payment_id}
+              </Typography>
+              <Typography>
+                <strong>Số tiền:</strong>{" "}
+                {paymentDetail.amount.toLocaleString("vi-VN")}₫
+              </Typography>
+              <Typography>
+                <strong>Phương thức:</strong> {paymentDetail.payment_method}
+              </Typography>
+              <Typography>
+                <strong>Trạng thái:</strong>{" "}
+                {renderStatus(paymentDetail.payment_status)}
+              </Typography>
+
+              {/* QR */}
+              {paymentDetail.qr_code_url && (
+                <Box mt={2}>
+                  <img
+                    src={paymentDetail.qr_code_url}
+                    alt="QR"
+                    style={{ width: 200, borderRadius: 6 }}
+                  />
+                </Box>
+              )}
+
+              {/* Company bank info */}
+              {paymentDetail.company_bank && (
+                <Box
+                  sx={{
+                    mt: 2,
+                    p: 2,
+                    border: "1px solid #eee",
+                    borderRadius: 2,
+                    background: "#fff",
+                  }}
+                >
+                  <Typography fontWeight={600} mb={1}>
+                    Tài khoản công ty (nhận tiền)
+                  </Typography>
+
+                  <Typography>
+                    <strong>Ngân hàng:</strong>{" "}
+                    {paymentDetail.company_bank.bank_name} (
+                    {paymentDetail.company_bank.bank_code})
+                  </Typography>
+
+                  <Typography>
+                    <strong>Số tài khoản:</strong>{" "}
+                    {paymentDetail.company_bank.account_number}
+                  </Typography>
+
+                  <Typography>
+                    <strong>Chủ tài khoản:</strong>{" "}
+                    {paymentDetail.company_bank.account_name}
+                  </Typography>
+
+                  <Typography>
+                    <strong>Nội dung chuyển khoản:</strong>{" "}
+                    {paymentDetail.company_bank.content}
+                  </Typography>
+                </Box>
+              )}
+
+              {/* Ảnh bill */}
+              <Typography fontWeight={600} mt={2}>
+                Ảnh bill thanh toán
+              </Typography>
+              {paymentDetail.proofs?.length > 0 ? (
+                <Grid container spacing={1} mt={1}>
+                  {paymentDetail.proofs.map((pf) => (
+                    <Grid item xs={4} key={pf.id}>
+                      <img
+                        src={pf.url}
+                        style={{
+                          width: "100%",
+                          height: 120,
+                          objectFit: "cover",
+                          borderRadius: 6,
+                          border: "1px solid #ddd",
+                        }}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              ) : (
+                <Typography color="text.secondary">
+                  Chưa có ảnh bill được tải lên
+                </Typography>
+              )}
+
+              {/* Nút duyệt */}
+              {paymentDetail.payment_status === "customer_review" && (
+                <Button
+                  variant="contained"
+                  color="success"
+                  sx={{ mt: 2 }}
+                  onClick={handleApprovePayment}
+                >
+                  Duyệt thanh toán
+                </Button>
+              )}
+            </Box>
+          </>
         )}
 
         <Box mt={3} textAlign="right">
