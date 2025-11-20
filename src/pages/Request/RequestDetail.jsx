@@ -16,9 +16,13 @@ import {
 } from "@mui/material";
 import requestApi from "../../service/api/requestApi";
 import AssignWorkerModal from "./AssignWorkerModal";
-import { STATUS_CONFIG, STATUS_CONFIG_PAYMENT } from "../../config/statusConfig";
+import {
+  STATUS_CONFIG,
+  STATUS_CONFIG_PAYMENT,
+} from "../../config/statusConfig";
 import paymentApi from "../../service/api/paymentApi";
 import { ShieldAlert } from "lucide-react";
+import ImagePreviewModal from "../../components/ImageModal/ImagePreviewModal";
 const style = {
   position: "absolute",
   top: "50%",
@@ -43,6 +47,35 @@ const hexToRgba = (hex, opacity = 1) => {
     : hex;
 };
 const renderStatus = (stt) => {
+  const s = STATUS_CONFIG[stt] || {
+    label: "Không xác định",
+    color: "#6B7280",
+    icon: ShieldAlert,
+  };
+
+  const Icon = s.icon;
+
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "6px",
+        padding: "4px 10px",
+        borderRadius: "20px",
+        fontSize: "12px",
+        fontWeight: 500,
+        border: `1px solid ${s.color}`,
+        color: s.color,
+        backgroundColor: `${s.color}1A`, // 10% opacity
+      }}
+    >
+      <Icon size={14} strokeWidth={2} />
+      {s.label}
+    </span>
+  );
+};
+const renderStatusPayment = (stt) => {
   const s = STATUS_CONFIG_PAYMENT[stt] || {
     label: "Không xác định",
     color: "#6B7280",
@@ -71,7 +104,6 @@ const renderStatus = (stt) => {
     </span>
   );
 };
-
 export default function RequestDetail({
   open,
   onClose,
@@ -82,6 +114,8 @@ export default function RequestDetail({
   const [paymentDetail, setPaymentDetail] = useState(null);
   const [loading, setLoading] = useState(false);
   const [openAssign, setOpenAssign] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+
   const formatDate = (dateStr) =>
     dateStr ? new Date(dateStr).toLocaleString("vi-VN") : "—";
 
@@ -260,12 +294,14 @@ export default function RequestDetail({
                   component="img"
                   src={img.image_url}
                   alt="scene"
+                  onClick={() => setPreviewImage(img.image_url)}
                   sx={{
                     width: "100%",
                     height: 120,
                     objectFit: "cover",
                     borderRadius: 2,
                     border: "1px solid #eee",
+                    cursor: "pointer",
                   }}
                 />
               </Grid>
@@ -289,12 +325,14 @@ export default function RequestDetail({
                     component="img"
                     src={img.image_url}
                     alt="survey"
+                    onClick={() => setPreviewImage(img.image_url)}
                     sx={{
                       width: "100%",
                       height: 120,
                       objectFit: "cover",
                       borderRadius: 2,
                       border: "1px solid #eee",
+                      cursor: "pointer",
                     }}
                   />
                 </Grid>
@@ -387,7 +425,7 @@ export default function RequestDetail({
               </Typography>
               <Typography>
                 <strong>Trạng thái:</strong>{" "}
-                {renderStatus(paymentDetail.payment_status)}
+                {renderStatusPayment(paymentDetail.payment_status)}
               </Typography>
 
               {/* QR */}
@@ -449,12 +487,14 @@ export default function RequestDetail({
                     <Grid item xs={4} key={pf.id}>
                       <img
                         src={pf.url}
+                        onClick={() => setPreviewImage(pf.url)}
                         style={{
                           width: "100%",
                           height: 120,
                           objectFit: "cover",
                           borderRadius: 6,
                           border: "1px solid #ddd",
+                          cursor: "pointer",
                         }}
                       />
                     </Grid>
@@ -509,6 +549,13 @@ export default function RequestDetail({
               setLoading(false);
             });
           }}
+        />
+
+        {/* Modal xem ảnh full */}
+        <ImagePreviewModal
+          open={!!previewImage}
+          image={previewImage}
+          onClose={() => setPreviewImage(null)}
         />
       </Box>
     </Modal>

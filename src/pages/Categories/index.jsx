@@ -89,10 +89,10 @@ function Categories() {
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <input
           type="text"
-          placeholder="Tìm kiếm theo tên danh mục..."
+          placeholder="Tìm kiếm theo mã, tên, mô tả danh mục..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border rounded px-3 py-2 w-80"
+          className="border rounded px-3 py-2 w-[500px]"
         />
         <button
           onClick={handleRefresh}
@@ -103,8 +103,8 @@ function Categories() {
       </div>
 
       <table className="w-full border border-gray-300 text-sm">
-        <thead>
-          <tr className="bg-gray-100">
+        <thead className="bg-gray-100">
+          <tr>
             <th className="border p-2">Mã danh mục</th>
             <th className="border p-2">Tên danh mục</th>
             <th className="border p-2">Mô tả</th>
@@ -112,7 +112,7 @@ function Categories() {
             <th className="border p-2 text-center">Hành động</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="bg-white">
           {categories.length === 0 ? (
             <tr>
               <td colSpan="5" className="text-center p-4">

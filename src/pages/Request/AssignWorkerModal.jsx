@@ -16,8 +16,8 @@ import {
   Checkbox,
 } from "@mui/material";
 import requestApi from "../../service/api/requestApi";
-import workerApi from "../../service/api/workerApi";
 import { toast } from "react-toastify";
+import technicianApi from "../../service/api/technicianApi";
 
 const style = {
   position: "absolute",
@@ -49,11 +49,11 @@ export default function AssignWorkerModal({
   const fetchWorkers = async () => {
     setLoading(true);
     try {
-      const res = await workerApi.getList({
+      const res = await technicianApi.getAll({
         page,
         size,
         keySearch,
-        status: "all",
+        status: "active",
       });
       if (res.status) {
         setWorkers(res.data.data);

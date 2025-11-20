@@ -122,7 +122,7 @@ function Services() {
           placeholder="Tìm kiếm theo tên, mô tả, ID..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border rounded px-3 py-2 flex-1 min-w-[200px]"
+          className="border rounded px-3 py-2 w-[500px]"
         />
 
         <button
@@ -143,7 +143,7 @@ function Services() {
             <th className="border p-2">Hành động</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="bg-white">
           {services.length === 0 ? (
             <tr>
               <td colSpan="5" className="text-center p-4">

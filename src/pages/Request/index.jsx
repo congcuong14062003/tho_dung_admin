@@ -4,15 +4,7 @@ import RequestDetail from "./RequestDetail";
 import { STATUS_CONFIG } from "../../config/statusConfig";
 import { toast } from "react-toastify";
 import { useLoading } from "../../context/LoadingContext";
-import {
-  Clock,
-  UserCheck,
-  DollarSign,
-  Wrench,
-  CheckCircle,
-  XCircle,
-  ShieldAlert,
-} from "lucide-react"; // Thêm import icons từ lucide-react
+import { ShieldAlert } from "lucide-react"; // Thêm import icons từ lucide-react
 function Requests() {
   const [requests, setRequests] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -42,7 +34,6 @@ function Requests() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     const delay = setTimeout(fetchRequests, 400); // debounce search
     return () => clearTimeout(delay);
@@ -138,7 +129,7 @@ function Requests() {
             <th className="border p-2 text-center">Hành động</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="bg-white">
           {requests.length === 0 ? (
             <tr>
               <td colSpan="7" className="text-center p-4">
