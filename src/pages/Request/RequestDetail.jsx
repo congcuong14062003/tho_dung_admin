@@ -160,6 +160,27 @@ export default function RequestDetail({
     }
   };
 
+  const handleApprovePayment = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        payment_id: paymentDetail?.id,
+        action: "approve",
+      };
+      const res = await paymentApi.verifyPayment(payload);
+      if (res.status && res.data) {
+        setPaymentDetail(res.data);
+      } else {
+        setPaymentDetail(null);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy chi tiết payment:", error);
+      setPaymentDetail(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <Modal open={open} onClose={onClose}>
@@ -353,23 +374,34 @@ export default function RequestDetail({
               <TableHead>
                 <TableRow>
                   <TableCell>Hạng mục</TableCell>
-                  <TableCell align="right">Đơn giá (₫)</TableCell>
+                  <TableCell>Đơn giá (₫)</TableCell>
+                  <TableCell>Trạng thái</TableCell>
+                  <TableCell>Ghi chú</TableCell>
+                  <TableCell>Phản hồi của khách hàng</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {request.quotations.data.map((qtn) => (
                   <TableRow key={qtn.id}>
                     <TableCell>{qtn.name}</TableCell>
-                    <TableCell align="right">
-                      {qtn.price.toLocaleString("vi-VN")}
+                    <TableCell>{qtn.price.toLocaleString("vi-VN")}</TableCell>
+                    <TableCell>
+                      {qtn.status === "in_progress"
+                        ? "Đang tiến hành"
+                        : "Hoàn thành"}
                     </TableCell>
+                    <TableCell>{qtn.note}</TableCell>
+                    <TableCell>{qtn.reason}</TableCell>
                   </TableRow>
                 ))}
                 <TableRow>
                   <TableCell sx={{ fontWeight: 600 }}>Tổng cộng</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600 }}>
+                  <TableCell sx={{ fontWeight: 600 }}>
                     {request.quotations.total_price.toLocaleString("vi-VN")}
                   </TableCell>
+                  <TableCell></TableCell>
+                  <TableCell></TableCell>
+                  <TableCell></TableCell>
                 </TableRow>
               </TableBody>
             </Table>

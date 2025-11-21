@@ -1,4 +1,12 @@
 import { Link } from "react-router-dom";
+import {
+  Home,
+  Folder,
+  Wrench,
+  FileText,
+  Users,
+  User,
+} from "lucide-react";
 
 export default function Sidebar() {
   return (
@@ -7,11 +15,47 @@ export default function Sidebar() {
         Luxhomes
       </div>
       <nav className="flex-1 p-4 space-y-2">
-        <Link to="/" className="block px-3 py-2 rounded hover:bg-gray-700">🏠 Dashboard</Link>
-        <Link to="/categories" className="block px-3 py-2 rounded hover:bg-gray-700">📂 Danh mục</Link>
-        <Link to="/services" className="block px-3 py-2 rounded hover:bg-gray-700">🧰 Dịch vụ</Link>
-        <Link to="/technicians" className="block px-3 py-2 rounded hover:bg-gray-700">👷 Thợ</Link>
-        <Link to="/requests" className="block px-3 py-2 rounded hover:bg-gray-700">📄 Yêu cầu</Link>
+        <Link
+          to="/"
+          className="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700"
+        >
+          <Home size={18} /> Dashboard
+        </Link>
+
+        <Link
+          to="/categories"
+          className="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700"
+        >
+          <Folder size={18} /> Danh mục
+        </Link>
+
+        <Link
+          to="/services"
+          className="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700"
+        >
+          <Wrench size={18} /> Dịch vụ
+        </Link>
+
+        <Link
+          to="/requests"
+          className="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700"
+        >
+          <FileText size={18} /> Yêu cầu
+        </Link>
+
+        <Link
+          to="/technicians"
+          className="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700"
+        >
+          <Users size={18} /> Thợ
+        </Link>
+
+        <Link
+          to="/customers"
+          className="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700"
+        >
+          <User size={18} /> Khách
+        </Link>
       </nav>
     </aside>
   );

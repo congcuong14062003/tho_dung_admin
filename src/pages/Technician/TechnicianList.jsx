@@ -4,6 +4,7 @@ import technicianApi from "../../service/api/technicianApi";
 import { toast } from "react-toastify";
 import { useLoading } from "../../context/LoadingContext";
 import ConfirmModal from "../../components/ConfirmModal/ConfirmModal";
+import apiCommon from "../../service/api/apiCommon";
 
 function TechnicianList() {
   const [data, setData] = useState([]);
@@ -55,7 +56,6 @@ function TechnicianList() {
 
   // =================== KHÓA TÀI KHOẢN ===================
   const openBlockModal = (userId, fullName) => {
-    // ← Sửa lại thành userId
     setConfirmModal({
       open: true,
       title: "Khóa tài khoản thợ",
@@ -65,10 +65,13 @@ function TechnicianList() {
       onConfirm: async () => {
         setLoading(true);
         try {
-          const res = await technicianApi.block({ user_id: userId }); // ← dùng đúng userId
+          const res = await apiCommon.updateUserStatus({
+            userId: userId,
+            status: "inactive",
+          });
 
           if (res.status) {
-            toast.success(res.message);
+            toast.success(res.message || "Đã khóa tài khoản thợ");
             fetchData();
           } else {
             toast.error(res.message || "Khóa tài khoản thất bại");
@@ -85,7 +88,7 @@ function TechnicianList() {
     });
   };
 
-  // =================== MỞ KHÓA TÀI KHOẢN ===================
+  // =================== MỞ KHÓA ===================
   const openUnblockModal = (userId, fullName) => {
     setConfirmModal({
       open: true,
@@ -96,10 +99,13 @@ function TechnicianList() {
       onConfirm: async () => {
         setLoading(true);
         try {
-          const res = await technicianApi.unblock({ user_id: userId });
+          const res = await apiCommon.updateUserStatus({
+            userId: userId,
+            status: "active",
+          });
 
           if (res.status) {
-            toast.success(res.message);
+            toast.success(res.message || "Đã mở khóa tài khoản");
             fetchData();
           } else {
             toast.error(res.message || "Mở khóa thất bại");
@@ -114,6 +120,7 @@ function TechnicianList() {
       },
     });
   };
+
   const handleRefresh = () => {
     setKeySearch("");
     fetchData();

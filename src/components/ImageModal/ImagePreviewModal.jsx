@@ -13,10 +13,9 @@ export default function ImagePreviewModal({ open, image, onClose }) {
           left: "50%",
           transform: "translate(-50%, -50%)",
           bgcolor: "#000",
-          p: 1,
-          borderRadius: 2,
-          width: "70vh",
-          height: "70vh",
+          border: "1px solid #ccc",
+          width: "auto",
+          height: "95vh",
         }}
       >
         <img

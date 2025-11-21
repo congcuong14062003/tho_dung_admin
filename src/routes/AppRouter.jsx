@@ -5,9 +5,13 @@ import NoLayout from "../layout/NoLayout"; // Layout trống cho các trang như
 import Categories from "../pages/Categories";
 import Services from "../pages/Services";
 import Requests from "../pages/Request";
-import Technician from "../pages/Technician/Technician";
+import Technician from "../pages/Technician";
+import Customer from "../pages/Customer";
 
-export default function AppRoutes({setLoading, defaultLayout: DefaultLayout }) {
+export default function AppRoutes({
+  setLoading,
+  defaultLayout: DefaultLayout,
+}) {
   const routes = [
     {
       path: "/login",
@@ -29,9 +33,14 @@ export default function AppRoutes({setLoading, defaultLayout: DefaultLayout }) {
       element: <Services />,
       // không khai báo layout → sẽ dùng layout mặc định
     },
-     {
+    {
       path: "/technicians",
       element: <Technician />,
+      // không khai báo layout → sẽ dùng layout mặc định
+    },
+    {
+      path: "/customers",
+      element: <Customer />,
       // không khai báo layout → sẽ dùng layout mặc định
     },
     {
