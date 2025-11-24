@@ -1,61 +1,77 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import CategoryForm from "./CategoryForm";
 import categoryApi from "../../service/api/categoryApi";
 import { useLoading } from "../../context/LoadingContext";
 import { toast } from "react-toastify";
+import images from "../../assets/images/Image";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  TableContainer,
+  Paper,
+  Button,
+  TextField,
+  Select,
+  MenuItem,
+} from "@mui/material";
+
+import PaginationContainer from "../../components/PaginationContainer";
+import { debounce } from "../../utils/functions";
 
 function Categories() {
+  const { setLoading } = useLoading();
+
   const [categories, setCategories] = useState([]);
   const [openModal, setOpenModal] = useState(false);
   const [selected, setSelected] = useState(null);
-  const { setLoading } = useLoading();
-  // 🧩 Thêm state tìm kiếm
-  const [search, setSearch] = useState("");
-  // 🔹 Lấy danh sách danh mục
+
+  const [totalRecord, setTotalRecord] = useState(0);
+
+  // Giống Services: 1 object request
+  const [request, setRequest] = useState({
+    page: 1,
+    size: 10,
+    keySearch: "",
+    status: "",
+  });
+
+  const [searchInput, setSearchInput] = useState("");
+
+  /** ===================== FETCH ===================== */
+
   const fetchCategories = async () => {
     setLoading(true);
     try {
-      const res = await categoryApi.getList({
-        page: 1,
-        size: 50,
-        keySearch: search, // ✅ dùng search
-      });
+      const res = await categoryApi.getList(request);
       if (res.status && res?.data?.data) {
         setCategories(res.data.data);
+        setTotalRecord(res.data.totalRecord || 0);
       }
-    } catch (error) {
-      console.error("Lỗi lấy danh mục:", error);
+    } catch (err) {
+      console.error("Lỗi lấy danh mục:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ debounce tìm kiếm (đợi người dùng dừng gõ)
-  useEffect(() => {
-    const delay = setTimeout(() => {
-      fetchCategories();
-    }, 400);
-    return () => clearTimeout(delay);
-  }, [search]);
+  /** ===================== SEARCH (DEBOUNCE) ===================== */
 
-  const handleDelete = async (id) => {
-    try {
-      const res = await categoryApi.delete(id);
-      if (res?.status) {
-        toast?.success(res?.message);
-      } else {
-        toast.error(res?.message);
-      }
-      fetchCategories();
-    } catch (error) {
-      toast.error("Không thể xóa danh mục");
-    }
-  };
+  const handleOnChangeSearch = useCallback(
+    debounce((value) => {
+      setRequest((prev) => ({
+        ...prev,
+        keySearch: value,
+        page: 1,
+      }));
+    }, 400),
+    []
+  );
 
-  const handleOnClose = () => {
-    setOpenModal(false);
-    fetchCategories();
-  };
+  /** ===================== ACTIONS ===================== */
 
   const handleAdd = () => {
     setSelected(null);
@@ -67,96 +83,188 @@ function Categories() {
     setOpenModal(true);
   };
 
+  const handleDelete = async (id) => {
+    try {
+      const res = await categoryApi.delete(id);
+      res?.status ? toast.success(res.message) : toast.error(res.message);
+      fetchCategories();
+    } catch {
+      toast.error("Không thể xóa danh mục");
+    }
+  };
+
   const handleRefresh = () => {
-    setSearch("");
+    setSearchInput("");
+    setRequest({
+      page: 1,
+      size: 10,
+      keySearch: "",
+      status: "", // reset filter
+    });
+  };
+
+  const handleOnClose = () => {
+    setOpenModal(false);
     fetchCategories();
   };
 
+  /** ===================== EFFECTS ===================== */
+
+  useEffect(() => {
+    fetchCategories();
+  }, [request]);
+
+  /** ===================== RENDER ===================== */
+
   return (
     <div className="p-6">
-      {/* Tiêu đề + nút thêm */}
+      {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Quản lý danh mục</h2>
-        <button
-          onClick={handleAdd}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-        >
+        <Button variant="contained" color="success" onClick={handleAdd}>
           + Thêm mới
-        </button>
+        </Button>
       </div>
 
-      {/* 🧩 Thanh tìm kiếm + nút làm mới */}
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <input
-          type="text"
-          placeholder="Tìm kiếm theo mã, tên, mô tả danh mục..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border rounded px-3 py-2 w-[500px]"
+      {/* Search */}
+      <div className="flex items-center gap-3 mb-4">
+        <TextField
+          label="Tìm kiếm theo mã, tên, mô tả danh mục..."
+          size="small"
+          value={searchInput}
+          onChange={(e) => {
+            setSearchInput(e.target.value);
+            handleOnChangeSearch(e.target.value);
+          }}
+          sx={{ width: 400 }}
         />
-        <button
-          onClick={handleRefresh}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+
+        {/* 🔥 Select lọc status */}
+        <Select
+          size="small"
+          value={request.status ?? ""}
+          onChange={(e) =>
+            setRequest((prev) => ({
+              ...prev,
+              status: e.target.value,
+              page: 1,
+            }))
+          }
+          displayEmpty // 🔥 Quan trọng
+          sx={{ width: 160 }}
         >
+          <MenuItem value="">
+            <em>Tất cả</em>
+          </MenuItem>
+          <MenuItem value="active">Hoạt động</MenuItem>
+          <MenuItem value="inactive">Ngừng hoạt động</MenuItem>
+        </Select>
+
+        <Button variant="contained" color="primary" onClick={handleRefresh}>
           Làm mới
-        </button>
+        </Button>
       </div>
 
-      <table className="w-full border border-gray-300 text-sm">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border p-2">Mã danh mục</th>
-            <th className="border p-2">Tên danh mục</th>
-            <th className="border p-2">Mô tả</th>
-            <th className="border p-2">Ảnh</th>
-            <th className="border p-2 text-center">Hành động</th>
-          </tr>
-        </thead>
-        <tbody className="bg-white">
-          {categories.length === 0 ? (
-            <tr>
-              <td colSpan="5" className="text-center p-4">
-                Không có danh mục nào
-              </td>
-            </tr>
-          ) : (
-            categories.map((item) => (
-              <tr key={item?.id}>
-                <td className="border p-2 text-center">{item?.id}</td>
-                <td className="border p-2">{item?.name}</td>
-                <td className="border p-2">{item?.description}</td>
-                <td className="border p-2 text-center">
-                  {item?.icon ? (
-                    <img
-                      src={item?.icon}
-                      alt=""
-                      className="w-10 h-10 mx-auto rounded"
-                    />
-                  ) : (
-                    "-"
-                  )}
-                </td>
-                <td className="border p-2 text-center space-x-2">
-                  <button
-                    onClick={() => handleEdit(item)}
-                    className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
-                  >
-                    Sửa
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item?.id)}
-                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                  >
-                    Xóa
-                  </button>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+      {/* Table */}
+      <TableContainer component={Paper} elevation={2}>
+        <Table>
+          <TableHead sx={{ bgcolor: "#8ed1fc" }}>
+            <TableRow>
+              <TableCell>Mã danh mục</TableCell>
+              <TableCell>Tên danh mục</TableCell>
+              <TableCell width={300}>Mô tả</TableCell>
+              <TableCell align="center">Màu</TableCell>
+              <TableCell align="center">Ảnh</TableCell>
+              <TableCell align="center">Trạng thái</TableCell>
 
-      {/* Form thêm/sửa danh mục */}
+              <TableCell align="center">Hành động</TableCell>
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {categories.length > 0 ? (
+              categories.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.id}</TableCell>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell>{item.description}</TableCell>
+
+                  <TableCell align="center">
+                    <div
+                      className="inline-block rounded"
+                      style={{
+                        width: 28,
+                        height: 28,
+                        background: item.color || "#ddd",
+                        border: "1px solid #ccc",
+                      }}
+                    ></div>
+                  </TableCell>
+
+                  <TableCell align="center">
+                    {item.icon ? (
+                      <img
+                        src={item.icon}
+                        alt="icon"
+                        className="w-10 h-10 rounded mx-auto"
+                      />
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+                  <TableCell align="center">
+                    <span
+                      style={{
+                        padding: "4px 8px",
+                        borderRadius: 6,
+                        color: item.status === "active" ? "green" : "red",
+                        fontWeight: 600,
+                        background:
+                          item.status === "active" ? "#d4f8d4" : "#ffd7d7",
+                      }}
+                    >
+                      {item.status === "active"
+                        ? "Hoạt động"
+                        : "Ngừng hoạt động"}
+                    </span>
+                  </TableCell>
+
+                  <TableCell align="center">
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      size="small"
+                      sx={{ mr: 1 }}
+                      onClick={() => handleEdit(item)}
+                    >
+                      Sửa
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell align="center" colSpan={6}>
+                  <div className="py-6 flex flex-col items-center justify-center">
+                    <img src={images.emptyBox} width={120} />
+                    <p className="text-gray-600 mt-2">Không có dữ liệu</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* Pagination */}
+      <PaginationContainer
+        display={categories.length > 0}
+        totalRecord={totalRecord}
+        setDataFilter={setRequest}
+        dataFilter={request}
+      />
+
+      {/* Modal */}
       <CategoryForm
         onClose={handleOnClose}
         open={openModal}

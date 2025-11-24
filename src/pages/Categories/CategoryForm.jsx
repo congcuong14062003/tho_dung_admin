@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Box, TextField, Button, Typography } from "@mui/material";
+import {
+  Modal,
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Select,
+  MenuItem,
+} from "@mui/material";
 import categoryApi from "../../service/api/categoryApi";
 import { toast } from "react-toastify";
 import { useLoading } from "../../context/LoadingContext";
@@ -18,12 +26,15 @@ const style = {
 
 export default function CategoryForm({ open, onClose, category }) {
   const { setLoading } = useLoading();
+
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     icon: null,
-    color: "#ffffff", // ✅ thêm mặc định
+    color: "#ffffff",
+    status: "active", // 🔥 mặc định
   });
+
   const [preview, setPreview] = useState(null);
 
   useEffect(() => {
@@ -32,7 +43,8 @@ export default function CategoryForm({ open, onClose, category }) {
         name: category.name || "",
         description: category.description || "",
         icon: null,
-        color: category.color || "#ffffff", // ✅ load lại màu khi sửa
+        color: category.color || "#ffffff",
+        status: category.status || "active", // 🔥 load status
       });
       setPreview(category.icon || null);
     } else {
@@ -41,28 +53,33 @@ export default function CategoryForm({ open, onClose, category }) {
         description: "",
         icon: null,
         color: "#ffffff",
+        status: "active",
       });
       setPreview(null);
     }
   }, [category]);
 
-  // 📝 Xử lý thay đổi input text / color
+  // 📝 Text + Select + Color change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 🖼️ Xử lý chọn ảnh
+  // 🖼️ File change
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setFormData((prev) => ({ ...prev, icon: file }));
     if (file) setPreview(URL.createObjectURL(file));
   };
 
-  // ✅ Submit form
+  // Submit
   const handleSubmit = async () => {
     if (!formData.name.trim()) {
       toast.warn("Tên danh mục không được để trống!");
+      return;
+    }
+    if (!category && !formData.icon) {
+      toast.warn("Vui lòng chọn ảnh đại diện!");
       return;
     }
 
@@ -71,15 +88,18 @@ export default function CategoryForm({ open, onClose, category }) {
     const data = new FormData();
     data.append("name", formData.name);
     data.append("description", formData.description);
-    data.append("color", formData.color); // ✅ gửi thêm color
+    data.append("color", formData.color);
+    data.append("status", formData.status); // 🔥 gửi status
+
     if (formData.icon) data.append("icon", formData.icon);
 
     try {
       let result;
       if (category) {
         result = await categoryApi.update(category.id, data);
-        if (result.status) toast.success("Cập nhật danh mục thành công!");
-        else toast.error(result.message || "Cập nhật danh mục thất bại!");
+        result.status
+          ? toast.success("Cập nhật danh mục thành công!")
+          : toast.error(result.message);
         onClose();
       } else {
         result = await categoryApi.create(data);
@@ -90,11 +110,12 @@ export default function CategoryForm({ open, onClose, category }) {
             description: "",
             icon: null,
             color: "#ffffff",
+            status: "active",
           });
           setPreview(null);
           onClose();
         } else {
-          toast.error(result.message || "Thêm mới danh mục thất bại!");
+          toast.error(result.message);
         }
       }
     } catch (error) {
@@ -132,7 +153,7 @@ export default function CategoryForm({ open, onClose, category }) {
           sx={{ mb: 2 }}
         />
 
-        {/* 🎨 Thêm chọn màu */}
+        {/* 🎨 Color */}
         <Box sx={{ mb: 2 }}>
           <Typography variant="body2" mb={1}>
             Màu hiển thị:
@@ -146,12 +167,24 @@ export default function CategoryForm({ open, onClose, category }) {
               width: 60,
               height: 40,
               border: "none",
-              background: "transparent",
               cursor: "pointer",
             }}
           />
           <span style={{ marginLeft: 8 }}>{formData.color}</span>
         </Box>
+
+        {/* 🔥 Select trạng thái */}
+        <Select
+          name="status"
+          fullWidth
+          size="small"
+          value={formData.status}
+          onChange={handleChange}
+          sx={{ mb: 2 }}
+        >
+          <MenuItem value="active">Hoạt động</MenuItem>
+          <MenuItem value="inactive">Ngừng hoạt động</MenuItem>
+        </Select>
 
         {/* 🖼️ Icon */}
         <Box sx={{ mb: 2 }}>
@@ -160,12 +193,7 @@ export default function CategoryForm({ open, onClose, category }) {
           </Typography>
           <Button variant="outlined" component="label">
             Chọn ảnh
-            <input
-              type="file"
-              hidden
-              accept="image/*"
-              onChange={handleFileChange}
-            />
+            <input type="file" hidden accept="image/*" onChange={handleFileChange} />
           </Button>
 
           {preview && (
@@ -185,10 +213,7 @@ export default function CategoryForm({ open, onClose, category }) {
           )}
         </Box>
 
-        <Box
-          mt={3}
-          sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}
-        >
+        <Box mt={3} sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
           <Button onClick={onClose}>Hủy</Button>
           <Button variant="contained" onClick={handleSubmit}>
             Lưu

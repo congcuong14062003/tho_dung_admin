@@ -1,31 +1,61 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import categoryApi from "../../service/api/categoryApi";
 import serviceApi from "../../service/api/serviceApi";
 import ServiceForm from "./ServiceForm";
 import { formatPrice } from "../../utils/formatNumber";
 import { useLoading } from "../../context/LoadingContext";
 import { toast } from "react-toastify";
+import images from "../../assets/images/Image";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  TableContainer,
+  Paper,
+  Button,
+  TextField,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+} from "@mui/material";
+import { debounce } from "../../utils/functions";
+import PaginationContainer from "../../components/PaginationContainer";
 
 function Services() {
   const [categories, setCategories] = useState([]);
   const [services, setServices] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [search, setSearch] = useState("");
   const [openModal, setOpenModal] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [totalRecord, setTotalRecord] = useState(0);
   const { setLoading } = useLoading();
+
+  // ❗ Chỉ dùng 1 object request (page, size, keySearch, catId)
+  const [request, setRequest] = useState({
+    page: 1,
+    size: 10,
+    keySearch: "",
+    catId: "all",
+    status: "all", // thêm trường status để lọc
+  });
+  const [searchInput, setSearchInput] = useState("");
+  /** ===================== FETCH ===================== */
 
   const fetchCategories = async () => {
     const res = await categoryApi.getList({ page: 1, size: 50, keySearch: "" });
     if (res.status && res?.data?.data) setCategories(res.data.data);
   };
 
-  const fetchServices = async (catId = "", keySearch = "") => {
+  const fetchServices = async () => {
     setLoading(true);
     try {
-      const res = await serviceApi.getByCategory(catId || "all", keySearch); // 👈 Gửi "all"
-      if (res.status && res?.data?.services) {
-        setServices(res.data.services);
+      const res = await serviceApi.getList(request); // Gửi đúng params phân trang
+      if (res.status && res?.data) {
+        setServices(res.data.services || []);
+        setTotalRecord(res.data.totalRecord || 0);
       } else {
         toast.error(res?.message || "Lỗi khi lấy dịch vụ");
       }
@@ -36,9 +66,16 @@ function Services() {
     }
   };
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  /** ===================== SEARCH (DEBOUNCE) ===================== */
+
+  const handleOnChangeSearch = useCallback(
+    debounce((value) => {
+      setRequest((prev) => ({ ...prev, keySearch: value, page: 1 }));
+    }, 500),
+    []
+  );
+
+  /** ===================== ACTIONS ===================== */
 
   const handleAdd = () => {
     setSelected(null);
@@ -53,132 +90,191 @@ function Services() {
   const handleDelete = async (id) => {
     try {
       const res = await serviceApi.delete(id);
-      if (res?.status) {
-        toast?.success(res?.message);
-      } else {
-        toast.error(res?.message);
-      }
-      fetchServices(selectedCategory, search);
-    } catch (error) {
-      toast.error("Không thể xóa danh mục");
+      if (res?.status) toast.success(res?.message);
+      else toast.error(res?.message);
+
+      fetchServices();
+    } catch {
+      toast.error("Không thể xóa dịch vụ");
     }
   };
 
   const handleOnClose = () => {
     setOpenModal(false);
-    fetchServices(selectedCategory, search);
+    fetchServices();
+  };
+  const handleRefresh = () => {
+    setSearchInput("");
+    setRequest({
+      page: 1,
+      size: 10,
+      keySearch: "",
+      catId: "all",
+      status: "", // reset filter
+    });
   };
 
-  const handleRefresh = () => {
-    setSearch("");
-    if (selectedCategory) fetchServices(selectedCategory, "");
-  };
+  /** ===================== FETCH INIT ===================== */
 
   useEffect(() => {
-    // Nếu lần đầu vào trang → gọi ngay
-    if (selectedCategory === "" && search === "") {
-      fetchServices("all", "");
-      return;
-    }
+    fetchCategories();
+  }, []);
 
-    // Tìm kiếm → có debounce
-    const delay = setTimeout(() => {
-      fetchServices(selectedCategory || "all", search);
-    }, 400);
+  // Gọi API khi request thay đổi
+  useEffect(() => {
+    fetchServices();
+  }, [request]);
 
-    return () => clearTimeout(delay);
-  }, [selectedCategory, search]);
+  /** ===================== RENDER ===================== */
 
   return (
     <div className="p-6">
+      {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Quản lý dịch vụ</h2>
-        <button
-          onClick={handleAdd}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-        >
+        <Button variant="contained" color="success" onClick={handleAdd}>
           + Thêm mới
-        </button>
+        </Button>
       </div>
 
-      {/* 🔍 Bộ lọc */}
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <label className="font-medium">Danh mục:</label>
-        <select
-          className="border p-2 rounded"
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-        >
-          <option value="">-- Tất cả dịch vụ --</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
-
-        <input
-          type="text"
-          placeholder="Tìm kiếm theo tên, mô tả, ID..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border rounded px-3 py-2 w-[500px]"
+      {/* Filters */}
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <TextField
+          label="Tìm kiếm theo mã, tên, mô tả dịch vụ..."
+          size="small"
+          value={searchInput}
+          onChange={(e) => {
+            setSearchInput(e.target.value);
+            handleOnChangeSearch(e.target.value);
+          }}
+          sx={{ width: 400 }}
         />
+        <FormControl sx={{ minWidth: 240 }} size="small">
+          <InputLabel>Danh mục</InputLabel>
+          <Select
+            label="Danh mục"
+            value={request.catId}
+            onChange={(e) =>
+              setRequest((prev) => ({
+                ...prev,
+                catId: e.target.value || "all",
+                page: 1,
+              }))
+            }
+          >
+            <MenuItem value="all">-- Tất cả dịch vụ --</MenuItem>
+            {categories.map((cat) => (
+              <MenuItem key={cat.id} value={cat.id}>
+                {cat.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
-        <button
-          onClick={handleRefresh}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
+        <FormControl sx={{ minWidth: 160 }} size="small">
+          <InputLabel>Trạng thái</InputLabel>
+          {/* 🔥 Select lọc status */}
+          <Select
+            label="Trạng thái"
+            size="small"
+            value={request.status ?? "all"}
+            onChange={(e) =>
+              setRequest((prev) => ({
+                ...prev,
+                status: e.target.value,
+                page: 1,
+              }))
+            }
+            displayEmpty // 🔥 Quan trọng
+            sx={{ width: 160 }}
+          >
+            <MenuItem value="all">
+              <em>Tất cả</em>
+            </MenuItem>
+            <MenuItem value="active">Hoạt động</MenuItem>
+            <MenuItem value="inactive">Ngừng hoạt động</MenuItem>
+          </Select>
+        </FormControl>
+
+        <Button variant="contained" onClick={handleRefresh}>
           Làm mới
-        </button>
+        </Button>
       </div>
 
-      <table className="w-full border border-gray-300 text-sm">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border p-2">Mã dịch vụ</th>
-            <th className="border p-2">Tên dịch vụ</th>
-            <th className="border p-2">Mô tả</th>
-            <th className="border p-2">Giá</th>
-            <th className="border p-2">Hành động</th>
-          </tr>
-        </thead>
-        <tbody className="bg-white">
-          {services.length === 0 ? (
-            <tr>
-              <td colSpan="5" className="text-center p-4">
-                Không có dịch vụ nào
-              </td>
-            </tr>
-          ) : (
-            services.map((item) => (
-              <tr key={item?.id}>
-                <td className="border p-2">{item?.id}</td>
-                <td className="border p-2">{item?.name}</td>
-                <td className="border p-2">{item?.description}</td>
-                <td className="border p-2">
-                  {formatPrice(item?.base_price)} VNĐ
-                </td>
-                <td className="border p-2 space-x-2 text-center">
-                  <button
-                    onClick={() => handleEdit(item)}
-                    className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
-                  >
-                    Sửa
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item?.id)}
-                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                  >
-                    Xóa
-                  </button>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+      {/* Table */}
+      <TableContainer component={Paper} elevation={2}>
+        <Table>
+          <TableHead sx={{ bgcolor: "#8ed1fc" }}>
+            <TableRow>
+              <TableCell>Mã dịch vụ</TableCell>
+              <TableCell>Tên dịch vụ</TableCell>
+              <TableCell width={300}>Mô tả</TableCell>
+              <TableCell>Giá</TableCell>
+              <TableCell align="center">Trạng thái</TableCell>
+              <TableCell align="center">Hành động</TableCell>
+            </TableRow>
+          </TableHead>
 
+          <TableBody>
+            {services.length > 0 ? (
+              services.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.id}</TableCell>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell>{item.description}</TableCell>
+                  <TableCell>{formatPrice(item.base_price)} VNĐ</TableCell>
+
+                  <TableCell align="center">
+                    <span
+                      style={{
+                        padding: "4px 8px",
+                        borderRadius: 6,
+                        color: item.status === "active" ? "green" : "red",
+                        fontWeight: 600,
+                        background:
+                          item.status === "active" ? "#d4f8d4" : "#ffd7d7",
+                      }}
+                    >
+                      {item.status === "active"
+                        ? "Hoạt động"
+                        : "Ngừng hoạt động"}
+                    </span>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      size="small"
+                      sx={{ mr: 1 }}
+                      onClick={() => handleEdit(item)}
+                    >
+                      Sửa
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} align="center">
+                  <div className="py-6 flex flex-col items-center justify-center">
+                    <img src={images.emptyBox} width={120} />
+                    <p className="text-gray-600 mt-2">Không có dữ liệu</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <PaginationContainer
+        display={services.length > 0}
+        totalRecord={totalRecord}
+        setDataFilter={setRequest}
+        dataFilter={request}
+      />
+
+      {/* Modal Form */}
       <ServiceForm
         open={openModal}
         onClose={handleOnClose}
