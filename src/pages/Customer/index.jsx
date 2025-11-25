@@ -1,19 +1,46 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  TableContainer,
+  Paper,
+  Button,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+} from "@mui/material";
+
 import { Search } from "lucide-react";
-import apiCommon from "../../service/api/apiCommon";
 import ConfirmModal from "../../components/ConfirmModal/ConfirmModal";
+import PaginationContainer from "../../components/PaginationContainer";
+import { debounce } from "../../utils/functions";
 import { toast } from "react-toastify";
+
 import { useLoading } from "../../context/LoadingContext";
 import customerApi from "../../service/api/customerApi";
+import apiCommon from "../../service/api/apiCommon";
+import images from "../../assets/images/Image";
 
 export default function Customer() {
+  const { setLoading } = useLoading();
+
   const [customers, setCustomers] = useState([]);
-  const [loadingPage, setLoadingPage] = useState(false);
+  const [totalRecord, setTotalRecord] = useState(0);
 
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
+  // ===== REQUEST giống Categories =====
+  const [request, setRequest] = useState({
+    page: 1,
+    size: 10,
+    keySearch: "",
+    status: "all",
+  });
 
-  const { loading, setLoading } = useLoading();
+  const [searchInput, setSearchInput] = useState("");
 
   const [confirmModal, setConfirmModal] = useState({
     open: false,
@@ -24,30 +51,38 @@ export default function Customer() {
     color: "blue",
   });
 
-  useEffect(() => {
-    const delay = setTimeout(() => {
-      fetchCustomers();
-    }, 400);
-    return () => clearTimeout(delay);
-  }, [search, status]);
-
+  // ========================= FETCH =========================
   const fetchCustomers = async () => {
     setLoading(true);
     try {
-      const res = await customerApi.getAll({
-        search,
-        status,
-      });
+      const res = await customerApi.getAll(request);
 
-      setCustomers(res.data || []);
+      setCustomers(res?.data?.data || []);
+      setTotalRecord(res?.data?.totalRecord || 0);
     } catch (err) {
-      console.error(err);
+      console.error("Lỗi lấy khách hàng:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // =================== KHÓA ===================
+  // ========================= SEARCH (DEBOUNCE) =========================
+  const handleOnChangeSearch = useCallback(
+    debounce((value) => {
+      setRequest((prev) => ({
+        ...prev,
+        keySearch: value,
+        page: 1,
+      }));
+    }, 400),
+    []
+  );
+
+  useEffect(() => {
+    fetchCustomers();
+  }, [request]);
+
+  // ========================= MODAL BLOCK / UNBLOCK =========================
   const openBlockModal = (userId, fullName) => {
     setConfirmModal({
       open: true,
@@ -59,18 +94,11 @@ export default function Customer() {
         setLoading(true);
         try {
           const res = await apiCommon.updateUserStatus({
-            userId: userId,
+            userId,
             status: "inactive",
           });
-
-          if (res.status) {
-            toast.success(res.message);
-            fetchCustomers();
-          } else {
-            toast.error(res.message);
-          }
-        } catch (err) {
-          toast.error("Lỗi khi khóa tài khoản");
+          res.status ? toast.success(res.message) : toast.error(res.message);
+          fetchCustomers();
         } finally {
           setLoading(false);
           setConfirmModal((prev) => ({ ...prev, open: false }));
@@ -79,7 +107,6 @@ export default function Customer() {
     });
   };
 
-  // =================== MỞ KHÓA ===================
   const openUnblockModal = (userId, fullName) => {
     setConfirmModal({
       open: true,
@@ -91,18 +118,11 @@ export default function Customer() {
         setLoading(true);
         try {
           const res = await apiCommon.updateUserStatus({
-            userId: userId,
+            userId,
             status: "active",
           });
-
-          if (res.status) {
-            toast.success(res.message);
-            fetchCustomers();
-          } else {
-            toast.error(res.message);
-          }
-        } catch (err) {
-          toast.error("Lỗi khi mở khóa");
+          res.status ? toast.success(res.message) : toast.error(res.message);
+          fetchCustomers();
         } finally {
           setLoading(false);
           setConfirmModal((prev) => ({ ...prev, open: false }));
@@ -110,74 +130,84 @@ export default function Customer() {
       },
     });
   };
+  const handleRefresh = () => {
+    setSearchInput("");
+    setRequest({
+      page: 1,
+      size: 10,
+      keySearch: "",
+      status: "all", // reset filter
+    });
+  };
 
   return (
-    <div className="rounded-lg shadow p-4 bg-white">
+    <div className="p-6 bg-white rounded shadow">
       <h2 className="text-xl font-semibold mb-4">Danh sách khách hàng</h2>
 
-      {/* Search + Filter */}
-      <div className="flex flex-wrap items-center gap-4 mb-4">
-        <div className="flex items-center border rounded px-3 py-2 gap-2 w-80">
-          <Search size={18} />
-          <input
-            type="text"
-            placeholder="Tìm theo tên, số điện thoại..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="outline-none flex-1 bg-transparent"
-          />
-        </div>
+      {/* ==== SEARCH + FILTER ==== */}
+      <div className="flex items-center gap-3 mb-4">
+        <TextField
+          label="Tìm theo mã, tên, số điện thoại khách hàng..."
+          size="small"
+          value={searchInput}
+          onChange={(e) => {
+            setSearchInput(e.target.value);
+            handleOnChangeSearch(e.target.value);
+          }}
+          sx={{ width: 350 }}
+        />
 
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="border px-3 py-2 rounded"
-        >
-          <option value="">Tất cả trạng thái</option>
-          <option value="active">Đang hoạt động</option>
-          <option value="inactive">Ngừng hoạt động</option>
-        </select>
+        <FormControl sx={{ minWidth: 160 }} size="small">
+          <InputLabel>Trạng thái</InputLabel>
+          <Select
+            label="Trạng thái"
+            size="small"
+            value={request.status}
+            onChange={(e) =>
+              setRequest((prev) => ({
+                ...prev,
+                status: e.target.value,
+                page: 1,
+              }))
+            }
+          >
+            <MenuItem value="all">Tất cả</MenuItem>
+            <MenuItem value="active">Hoạt động</MenuItem>
+            <MenuItem value="inactive">Ngừng hoạt động</MenuItem>
+          </Select>
+        </FormControl>
+        <Button variant="contained" color="primary" onClick={handleRefresh}>
+          Làm mới
+        </Button>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse border border-gray-300 text-sm">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-3 border text-left">Thông tin khách</th>
-              <th className="p-3 border text-left">SĐT</th>
-              <th className="p-3 border text-left">CCCD</th>
-              <th className="p-3 border text-center">Trạng thái</th>
-              <th className="p-3 border text-center">Hành động</th>
-            </tr>
-          </thead>
+      {/* ==== TABLE ==== */}
+      <TableContainer component={Paper} elevation={2}>
+        <Table>
+          <TableHead sx={{ bgcolor: "#8ed1fc" }}>
+            <TableRow>
+              <TableCell>Thông tin khách</TableCell>
+              <TableCell>SĐT</TableCell>
+              <TableCell>CCCD</TableCell>
+              <TableCell align="center">Trạng thái</TableCell>
+              <TableCell align="center">Hành động</TableCell>
+            </TableRow>
+          </TableHead>
 
-          <tbody>
-            {loadingPage ? (
-              <tr>
-                <td colSpan={5} className="p-4 text-center">
-                  Đang tải...
-                </td>
-              </tr>
-            ) : customers.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="p-4 text-center">
-                  Không có khách hàng nào
-                </td>
-              </tr>
-            ) : (
+          <TableBody>
+            {customers.length > 0 ? (
               customers.map((cus) => (
-                <tr key={cus.user_id} className="hover:bg-gray-50 transition">
-                  <td className="p-3 border">
+                <TableRow key={cus.id}>
+                  <TableCell>
                     <div className="flex items-center gap-3">
                       {cus.avatar_link ? (
                         <img
                           src={cus.avatar_link}
-                          alt={cus.full_name}
-                          className="w-10 h-10 rounded-full object-cover border"
+                          className="w-10 h-10 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-600">
-                          {cus.full_name.charAt(0)}
+                        <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-sm font-bold">
+                          {cus.full_name?.charAt(0)}
                         </div>
                       )}
 
@@ -188,58 +218,80 @@ export default function Customer() {
                         </div>
                       </div>
                     </div>
-                  </td>
+                  </TableCell>
 
-                  <td className="p-3 border font-medium">{cus.phone}</td>
-                  <td className="p-3 border">{cus.id_card || "—"}</td>
+                  <TableCell>{cus.phone}</TableCell>
+                  <TableCell>{cus.id_card || "—"}</TableCell>
 
-                  <td className="p-3 border text-center">
+                  <TableCell align="center">
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        cus.status === "active"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
+                      style={{
+                        padding: "4px 8px",
+                        borderRadius: 6,
+                        fontWeight: 600,
+                        background:
+                          cus.status === "active" ? "#d4f8d4" : "#ffd7d7",
+                        color: cus.status === "active" ? "green" : "red",
+                      }}
                     >
-                      {cus.status === "active" ? "Hoạt động" : "Ngừng"}
+                      {cus.status === "active"
+                        ? "Hoạt động"
+                        : "Ngừng hoạt động"}
                     </span>
-                  </td>
+                  </TableCell>
 
-                  <td className="p-3 border text-center">
+                  <TableCell align="center">
                     {cus.status === "active" ? (
-                      <button
-                        onClick={() =>
-                          openBlockModal(cus.id, cus.full_name)
-                        }
-                        className="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium transition shadow-sm"
+                      <Button
+                        variant="contained"
+                        color="error"
+                        size="small"
+                        onClick={() => openBlockModal(cus.id, cus.full_name)}
                       >
                         Khóa
-                      </button>
+                      </Button>
                     ) : (
-                      <button
-                        onClick={() =>
-                          openUnblockModal(cus.id, cus.full_name)
-                        }
-                        className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium transition shadow-sm"
+                      <Button
+                        variant="contained"
+                        color="success"
+                        size="small"
+                        onClick={() => openUnblockModal(cus.id, cus.full_name)}
                       >
                         Mở khóa
-                      </button>
+                      </Button>
                     )}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
+            ) : (
+              <TableRow>
+                <TableCell align="center" colSpan={100}>
+                  <div className="py-6 flex flex-col items-center justify-center">
+                    <img src={images.emptyBox} width={120} />
+                    <p className="text-gray-600 mt-2">Không có dữ liệu</p>
+                  </div>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </TableContainer>
 
+      {/* ==== PAGINATION ==== */}
+      <PaginationContainer
+        display={customers.length > 0}
+        totalRecord={totalRecord}
+        dataFilter={request}
+        setDataFilter={setRequest}
+      />
+
+      {/* Modal */}
       <ConfirmModal
         isOpen={confirmModal.open}
         title={confirmModal.title}
         message={confirmModal.message}
         confirmText={confirmModal.confirmText}
         cancelText="Hủy"
-        loading={loading}
         color={confirmModal.color}
         onConfirm={confirmModal.onConfirm}
         onCancel={() => setConfirmModal((prev) => ({ ...prev, open: false }))}

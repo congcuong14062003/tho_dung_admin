@@ -36,7 +36,7 @@ function Services() {
   // ❗ Chỉ dùng 1 object request (page, size, keySearch, catId)
   const [request, setRequest] = useState({
     page: 1,
-    size: 10,
+    size: 5,
     keySearch: "",
     catId: "all",
     status: "all", // thêm trường status để lọc
@@ -87,18 +87,6 @@ function Services() {
     setOpenModal(true);
   };
 
-  const handleDelete = async (id) => {
-    try {
-      const res = await serviceApi.delete(id);
-      if (res?.status) toast.success(res?.message);
-      else toast.error(res?.message);
-
-      fetchServices();
-    } catch {
-      toast.error("Không thể xóa dịch vụ");
-    }
-  };
-
   const handleOnClose = () => {
     setOpenModal(false);
     fetchServices();
@@ -110,7 +98,7 @@ function Services() {
       size: 10,
       keySearch: "",
       catId: "all",
-      status: "", // reset filter
+      status: "all", // reset filter
     });
   };
 
@@ -162,7 +150,7 @@ function Services() {
               }))
             }
           >
-            <MenuItem value="all">-- Tất cả dịch vụ --</MenuItem>
+            <MenuItem value="all">-- Tất cả --</MenuItem>
             {categories.map((cat) => (
               <MenuItem key={cat.id} value={cat.id}>
                 {cat.name}
@@ -188,9 +176,7 @@ function Services() {
             displayEmpty // 🔥 Quan trọng
             sx={{ width: 160 }}
           >
-            <MenuItem value="all">
-              <em>Tất cả</em>
-            </MenuItem>
+            <MenuItem value="all">Tất cả</MenuItem>
             <MenuItem value="active">Hoạt động</MenuItem>
             <MenuItem value="inactive">Ngừng hoạt động</MenuItem>
           </Select>
@@ -211,6 +197,7 @@ function Services() {
               <TableCell width={300}>Mô tả</TableCell>
               <TableCell>Giá</TableCell>
               <TableCell align="center">Trạng thái</TableCell>
+              <TableCell align="center">Danh mục</TableCell>
               <TableCell align="center">Hành động</TableCell>
             </TableRow>
           </TableHead>
@@ -218,28 +205,29 @@ function Services() {
           <TableBody>
             {services.length > 0 ? (
               services.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{item.id}</TableCell>
-                  <TableCell>{item.name}</TableCell>
-                  <TableCell>{item.description}</TableCell>
-                  <TableCell>{formatPrice(item.base_price)} VNĐ</TableCell>
+                <TableRow key={item?.id}>
+                  <TableCell>{item?.id}</TableCell>
+                  <TableCell>{item?.name}</TableCell>
+                  <TableCell>{item?.description}</TableCell>
+                  <TableCell>{formatPrice(item?.base_price)} VNĐ</TableCell>
 
                   <TableCell align="center">
                     <span
                       style={{
                         padding: "4px 8px",
                         borderRadius: 6,
-                        color: item.status === "active" ? "green" : "red",
+                        color: item?.status === "active" ? "green" : "red",
                         fontWeight: 600,
                         background:
-                          item.status === "active" ? "#d4f8d4" : "#ffd7d7",
+                          item?.status === "active" ? "#d4f8d4" : "#ffd7d7",
                       }}
                     >
-                      {item.status === "active"
+                      {item?.status === "active"
                         ? "Hoạt động"
                         : "Ngừng hoạt động"}
                     </span>
                   </TableCell>
+                  <TableCell align="center">{item?.category_name}</TableCell>
                   <TableCell align="center">
                     <Button
                       variant="contained"
@@ -255,7 +243,7 @@ function Services() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={100} align="center">
                   <div className="py-6 flex flex-col items-center justify-center">
                     <img src={images.emptyBox} width={120} />
                     <p className="text-gray-600 mt-2">Không có dữ liệu</p>

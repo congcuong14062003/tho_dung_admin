@@ -1,62 +1,94 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  TableContainer,
+  Paper,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button,
+} from "@mui/material";
+
+import { debounce } from "../../utils/functions";
 import technicianApi from "../../service/api/technicianApi";
-import { toast } from "react-toastify";
-import { useLoading } from "../../context/LoadingContext";
+import PaginationContainer from "../../components/PaginationContainer";
 import ConfirmModal from "../../components/ConfirmModal/ConfirmModal";
 import RejectConfirmModal from "../../components/ConfirmModal/RejectConfirmModal";
+import { useLoading } from "../../context/LoadingContext";
+import { toast } from "react-toastify";
+import images from "../../assets/images/Image";
 import { formatDateTimeVN } from "../../utils/formatdate";
 
-function PendingList() {
+export default function PendingList() {
+  const { setLoading } = useLoading();
+
   const [data, setData] = useState([]);
-  const [keySearch, setKeySearch] = useState("");
-  const [page, setPage] = useState(1);
+  const [totalRecord, setTotalRecord] = useState(0);
+  const [searchInput, setSearchInput] = useState("");
 
-  const { loading, setLoading } = useLoading();
+  // ===== REQUEST FILTER =====
+  const [request, setRequest] = useState({
+    page: 1,
+    size: 10,
+    keySearch: "",
+    status: "all",
+  });
 
-  // Modal duyệt (dùng ConfirmModal chung)
+  // ===== MODALS =====
   const [approveModal, setApproveModal] = useState({
     open: false,
     requestId: null,
     fullName: "",
   });
 
-  // Modal từ chối riêng
   const [rejectModal, setRejectModal] = useState({
     open: false,
     requestId: null,
     fullName: "",
   });
 
+  // ================== FETCH API ==================
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await technicianApi.getPending({
-        page,
-        size: 10,
-        keySearch,
-      });
+      const res = await technicianApi.getPending(request);
 
       if (res.status) {
         setData(res.data?.data || []);
+        setTotalRecord(res.data?.totalRecord || 0);
       } else {
-        toast.error(res.message || "Không thể tải danh sách chờ duyệt");
+        toast.error(res.message || "Không thể tải danh sách");
       }
-    } catch (err) {
+    } catch {
       toast.error("Lỗi kết nối server");
     } finally {
       setLoading(false);
     }
   };
 
+  // ================== SEARCH DEBOUNCE ==================
+  const handleSearchChange = useCallback(
+    debounce((value) => {
+      setRequest((prev) => ({
+        ...prev,
+        keySearch: value,
+        page: 1,
+      }));
+    }, 400),
+    []
+  );
+
   useEffect(() => {
-    const delay = setTimeout(() => {
-      fetchData();
-    }, 400); // chỉ gọi API nếu user ngừng gõ 400ms
+    fetchData();
+  }, [request]);
 
-    return () => clearTimeout(delay);
-  }, [page, keySearch]);
-
-  // =================== DUYỆT THỢ ===================
+  // ================== APPROVE ==================
   const openApprove = (requestId, fullName) => {
     setApproveModal({ open: true, requestId, fullName });
   };
@@ -67,21 +99,19 @@ function PendingList() {
       const res = await technicianApi.approve({
         request_id: approveModal.requestId,
       });
-      if (res.status) {
-        toast.success(res.message || "Đã duyệt thành công");
-        fetchData();
-        setApproveModal({ open: false, requestId: null, fullName: "" });
-      } else {
-        toast.error(res.message || "Duyệt thất bại");
-      }
-    } catch (err) {
-      toast.error("Lỗi khi duyệt thợ");
+
+      res.status
+        ? toast.success("Đã duyệt thành công")
+        : toast.error(res.message || "Duyệt thất bại");
+
+      fetchData();
+      setApproveModal({ open: false, requestId: null, fullName: "" });
     } finally {
       setLoading(false);
     }
   };
 
-  // =================== TỪ CHỐI THỢ ===================
+  // ================== REJECT ==================
   const openReject = (requestId, fullName) => {
     setRejectModal({ open: true, requestId, fullName });
   };
@@ -94,197 +124,245 @@ function PendingList() {
         reason,
       });
 
-      if (res.status) {
-        toast.success(res.message || "Đã từ chối yêu cầu");
-        fetchData();
-        setRejectModal({ open: false, requestId: null, fullName: "" });
-      } else {
-        toast.error(res.message || "Từ chối thất bại");
-      }
-    } catch (err) {
-      toast.error("Lỗi khi từ chối");
+      res.status
+        ? toast.success("Đã từ chối yêu cầu")
+        : toast.error(res.message || "Từ chối thất bại");
+
+      fetchData();
+      setRejectModal({ open: false, requestId: null, fullName: "" });
     } finally {
       setLoading(false);
     }
   };
+
+  // ================== RESET ==================
   const handleRefresh = () => {
-    setKeySearch("");
-    fetchData();
+    setSearchInput("");
+    setRequest({
+      page: 1,
+      size: 10,
+      keySearch: "",
+      status: "all",
+    });
   };
 
   return (
-    <div className="rounded-lg shadow p-4 bg-white">
-      <h2 className="text-xl font-semibold mb-4">Danh sách quản lý duyệt thợ</h2>
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        {" "}
-        <input
-          type="text"
-          placeholder="Tìm kiếm tên hoặc số điện thoại..."
-          className="border p-2 rounded w-[500px] "
-          value={keySearch}
-          onChange={(e) => setKeySearch(e.target.value)}
+    <div className="p-6 bg-white rounded shadow">
+      <h2 className="text-xl font-semibold mb-4">
+        Danh sách quản lý duyệt thợ
+      </h2>
+
+      {/* ===== SEARCH + FILTER ===== */}
+      <div className="flex items-center gap-3 mb-4">
+        <TextField
+          label="Tìm tên hoặc số điện thoại..."
+          size="small"
+          sx={{ width: 350 }}
+          value={searchInput}
+          onChange={(e) => {
+            setSearchInput(e.target.value);
+            handleSearchChange(e.target.value);
+          }}
         />
-        <button
-          onClick={handleRefresh}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
+
+        <FormControl size="small" sx={{ minWidth: 160 }}>
+          <InputLabel>Trạng thái</InputLabel>
+          <Select
+            label="Trạng thái"
+            value={request.status}
+            onChange={(e) =>
+              setRequest((prev) => ({
+                ...prev,
+                status: e.target.value,
+                page: 1,
+              }))
+            }
+          >
+            <MenuItem value="all">Tất cả</MenuItem>
+            <MenuItem value="pending">Chờ duyệt</MenuItem>
+            <MenuItem value="approved">Đã duyệt</MenuItem>
+            <MenuItem value="rejected">Từ chối</MenuItem>
+          </Select>
+        </FormControl>
+
+        <Button variant="contained" color="primary" onClick={handleRefresh}>
           Làm mới
-        </button>
+        </Button>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse border border-gray-300 text-sm">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-3 border text-left">Thợ đăng ký</th>
-              <th className="p-3 border text-left">SĐT</th>
-              <th className="p-3 border text-left">Chuyên môn</th>
-              <th className="p-3 border text-center">Năm KN</th>
-              <th className="p-3 border text-left">Khu vực</th>
-              <th className="p-3 border text-left">Mô tả</th>
-              <th className="p-3 border text-center">Chứng chỉ</th>
-              <th className="p-3 border text-center">Trạng thái</th>
-              <th className="p-3 border text-center">Ngày nộp</th>
-              <th className="p-3 border text-center">Hành động</th>
-            </tr>
-          </thead>
+      {/* ===== TABLE ===== */}
+      <TableContainer component={Paper} elevation={2}>
+        <Table>
+          <TableHead sx={{ bgcolor: "#8ed1fc" }}>
+            <TableRow>
+              <TableCell>Thợ đăng ký</TableCell>
+              <TableCell>SĐT</TableCell>
+              <TableCell>Chuyên môn</TableCell>
+              <TableCell align="center">Năm KN</TableCell>
+              <TableCell>Khu vực</TableCell>
+              <TableCell>Mô tả</TableCell>
+              <TableCell align="center">Chứng chỉ</TableCell>
+              <TableCell align="center">Trạng thái</TableCell>
+              <TableCell align="center">Ngày nộp</TableCell>
+              <TableCell align="center">Hành động</TableCell>
+            </TableRow>
+          </TableHead>
 
-          <tbody>
-            {data.map((item) => (
-              <tr key={item.request_id} className="hover:bg-gray-50 transition">
-                {/* Avatar + Tên */}
-                <td className="p-3 border">
-                  <div className="flex items-center gap-3">
-                    {item.avatar_link ? (
-                      <img
-                        src={item.avatar_link}
-                        alt={item.full_name}
-                        className="w-10 h-10 rounded-full object-cover border"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-600">
-                        {item.full_name?.charAt(0) || "?"}
-                      </div>
-                    )}
-                    <div>
-                      <div className="font-medium">{item.full_name}</div>
-                      <div className="text-xs text-gray-500">
-                        ID: {item.user_id}
+          <TableBody>
+            {data.length > 0 ? (
+              data.map((item) => (
+                <TableRow key={item.request_id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      {item.avatar_link ? (
+                        <img
+                          src={item.avatar_link}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-sm font-bold">
+                          {item.full_name?.charAt(0)}
+                        </div>
+                      )}
+                      <div>
+                        <div className="font-medium">{item.full_name}</div>
+                        <div className="text-xs text-gray-500">
+                          ID: {item.user_id}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </td>
+                  </TableCell>
 
-                <td className="p-3 border font-medium">{item.phone}</td>
+                  <TableCell>{item.phone}</TableCell>
 
-                <td className="p-3 border">
-                  <span
-                    className="px-3 py-1 rounded-full text-white text-xs font-medium"
-                    style={{
-                      backgroundColor: item.skill_category_color || "#666",
-                    }}
-                  >
-                    {item.skill_category_name || "Chưa chọn"}
-                  </span>
-                </td>
-
-                <td className="p-3 border text-center font-semibold text-blue-600">
-                  {item.experience_years} năm
-                </td>
-
-                <td className="p-3 border">{item.working_area || "-"}</td>
-
-                <td className="p-3 border max-w-[200px] text-gray-700 whitespace-pre-wrap break-words">
-                  {item.description || (
-                    <i className="text-gray-400">Chưa có mô tả</i>
-                  )}
-                </td>
-
-                <td className="p-3 border text-center">
-                  {item.certifications && item.certifications !== "none"
-                    ? "Có"
-                    : "—"}
-                </td>
-
-                {/* Trạng thái */}
-                <td className="p-3 max-w-[200px] border text-center">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      item.status === "pending"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : item.status === "approved"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {item.status === "pending"
-                      ? "Chờ duyệt"
-                      : item.status === "approved"
-                      ? "Đã duyệt"
-                      : "Bị từ chối"}
-                  </span>
-                  {item.status === "rejected" && (
-                    <p>Lý do từ chối: {item?.rejected_reason}</p>
-                  )}
-                </td>
-
-                <td className="p-3 border text-center text-xs">
-                  {formatDateTimeVN(item.created_at)}
-                </td>
-
-                {/* Hành động */}
-                <td className="p-3 border text-center space-x-2">
-                  {item.status === "pending" ? (
-                    <>
-                      <button
-                        onClick={() =>
-                          openApprove(item.request_id, item.full_name)
-                        }
-                        className="px-4 py-1.5 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-medium transition shadow-sm"
-                      >
-                        Duyệt
-                      </button>
-                      <button
-                        onClick={() =>
-                          openReject(item.request_id, item.full_name)
-                        }
-                        className="px-4 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 text-sm font-medium transition shadow-sm"
-                      >
-                        Từ chối
-                      </button>
-                    </>
-                  ) : (
-                    <span className="text-gray-500 text-xs italic">
-                      Đã xử lý
+                  <TableCell>
+                    <span
+                      className="px-3 py-1 text-white rounded-full text-xs"
+                      style={{
+                        backgroundColor: item.skill_category_color || "#666",
+                      }}
+                    >
+                      {item.skill_category_name}
                     </span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  </TableCell>
 
-      {/* Modal Duyệt - dùng ConfirmModal chung */}
+                  <TableCell align="center">
+                    {item.experience_years} năm
+                  </TableCell>
+
+                  <TableCell>{item.working_area}</TableCell>
+
+                  <TableCell className="max-w-[220px]">
+                    {item.description || "—"}
+                  </TableCell>
+
+                  <TableCell align="center">
+                    {item.certifications && item.certifications !== "none"
+                      ? "Có"
+                      : "—"}
+                  </TableCell>
+
+                  <TableCell align="center">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        item.status === "pending"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : item.status === "approved"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {item.status === "pending"
+                        ? "Chờ duyệt"
+                        : item.status === "approved"
+                        ? "Đã duyệt"
+                        : "Bị từ chối"}
+                    </span>
+
+                    {item.status === "rejected" && (
+                      <p className="text-xs text-red-600">
+                        Lý do: {item.rejected_reason}
+                      </p>
+                    )}
+                  </TableCell>
+
+                  <TableCell align="center">
+                    {formatDateTimeVN(item.created_at)}
+                  </TableCell>
+
+                  <TableCell align="center">
+                    {item.status === "pending" ? (
+                      <>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="success"
+                          sx={{ mr: 1 }}
+                          onClick={() =>
+                            openApprove(item.request_id, item.full_name)
+                          }
+                        >
+                          Duyệt
+                        </Button>
+
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="error"
+                          onClick={() =>
+                            openReject(item.request_id, item.full_name)
+                          }
+                        >
+                          Từ chối
+                        </Button>
+                      </>
+                    ) : (
+                      <span className="text-gray-500 text-xs italic">
+                        Đã xử lý
+                      </span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell align="center" colSpan={100}>
+                  <div className="py-6 flex flex-col items-center justify-center">
+                    <img src={images.emptyBox} width={120} />
+                    <p className="text-gray-600 mt-2">Không có dữ liệu</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* ===== PAGINATION ===== */}
+      <PaginationContainer
+        display={data.length > 0}
+        totalRecord={totalRecord}
+        dataFilter={request}
+        setDataFilter={setRequest}
+      />
+
+      {/* ===== MODALS ===== */}
       <ConfirmModal
         isOpen={approveModal.open}
         title="Xác nhận duyệt thợ"
-        message={`Bạn có chắc muốn DUYỆT thợ "${approveModal.fullName}" không?`}
+        message={`Bạn có chắc muốn DUYỆT thợ "${approveModal.fullName}"?`}
         confirmText="Duyệt ngay"
         cancelText="Hủy"
         color="green"
-        loading={loading}
         onConfirm={handleApprove}
         onCancel={() =>
           setApproveModal({ open: false, requestId: null, fullName: "" })
         }
       />
 
-      {/* Modal Từ chối riêng - đã tách file */}
       <RejectConfirmModal
         isOpen={rejectModal.open}
         fullName={rejectModal.fullName}
-        loading={loading}
         onConfirm={handleReject}
         onCancel={() =>
           setRejectModal({ open: false, requestId: null, fullName: "" })
@@ -293,5 +371,3 @@ function PendingList() {
     </div>
   );
 }
-
-export default PendingList;

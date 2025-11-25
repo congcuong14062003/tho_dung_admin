@@ -6,6 +6,7 @@ import {
   Button,
   Typography,
   MenuItem,
+  Select,
 } from "@mui/material";
 import categoryApi from "../../service/api/categoryApi";
 import serviceApi from "../../service/api/serviceApi";
@@ -27,10 +28,12 @@ const style = {
 export default function ServiceForm({ open, onClose, service }) {
   const { setLoading } = useLoading();
   const [formData, setFormData] = useState({
+    id: null,
     name: "",
     description: "",
     base_price: "",
     category_id: "",
+    status: "active",
   });
   const [categories, setCategories] = useState([]);
 
@@ -45,17 +48,21 @@ export default function ServiceForm({ open, onClose, service }) {
 
     if (service) {
       setFormData({
+        id: service.id || null,
         name: service.name,
         description: service.description,
         base_price: service.base_price,
         category_id: service.category_id,
+        status: service.status || "active",
       });
     } else {
       setFormData({
+        id: null,
         name: "",
         description: "",
         base_price: "",
         category_id: "",
+        status: "active",
       });
     }
   }, [open, service]); // 👈 thêm open vào đây
@@ -79,8 +86,7 @@ export default function ServiceForm({ open, onClose, service }) {
 
     try {
       if (service) {
-        const res = await serviceApi.update(service.id, formData);
-
+        const res = await serviceApi.update(formData);
         if (res?.status) {
           toast?.success(res?.message);
         } else {
@@ -145,6 +151,18 @@ export default function ServiceForm({ open, onClose, service }) {
           sx={{ mb: 2 }}
         />
 
+        {/* 🔥 Select trạng thái */}
+        <Select
+          name="status"
+          fullWidth
+          size="small"
+          value={formData.status}
+          onChange={handleChange}
+          sx={{ mb: 2 }}
+        >
+          <MenuItem value="active">Hoạt động</MenuItem>
+          <MenuItem value="inactive">Ngừng hoạt động</MenuItem>
+        </Select>
         <TextField
           select
           label="Danh mục"

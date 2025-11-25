@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import authApi from "../../service/api/authApi";
 import { toast } from "react-toastify";
+import { requestForToken } from "../../firebase";
 
 export default function Login() {
   const { login } = useAuth();
@@ -12,16 +13,39 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Tạo device_id
+  const getDeviceId = () => {
+    let id = localStorage.getItem("device_id");
+    if (!id) {
+      id = "dev_" + Math.random().toString(36).substring(2, 15);
+      localStorage.setItem("device_id", id);
+    }
+    return id;
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      const res = await authApi.login({ phone, password });
+      // 🔥 lấy FCM token
+      const fcm_token = await requestForToken();
+
+      // 🔥 lấy deviceId
+      const device_id = getDeviceId();
+
+      // 🔥 gọi API login gửi thêm fcm_token & device_id
+      const res = await authApi.login({
+        phone,
+        password,
+        fcm_token,
+        device_id,
+      });
+
       if (res.status) {
         login(res.data.token);
-        navigate("/"); // vào trang chủ luôn
+        navigate("/"); // vào trang chủ
       } else {
         toast.error(res.message);
       }
@@ -57,7 +81,9 @@ export default function Login() {
             className="w-full px-4 py-3 border rounded-xl"
             required
           />
+
           {error && <p className="text-red-500 text-center">{error}</p>}
+
           <button
             type="submit"
             disabled={loading}

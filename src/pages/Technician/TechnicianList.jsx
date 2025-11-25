@@ -1,17 +1,43 @@
-// src/pages/admin/TechnicianList.jsx
-import { useEffect, useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  TableContainer,
+  Paper,
+  Button,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+} from "@mui/material";
+
+import { debounce } from "../../utils/functions";
 import technicianApi from "../../service/api/technicianApi";
-import { toast } from "react-toastify";
 import { useLoading } from "../../context/LoadingContext";
+import PaginationContainer from "../../components/PaginationContainer";
 import ConfirmModal from "../../components/ConfirmModal/ConfirmModal";
 import apiCommon from "../../service/api/apiCommon";
+import images from "../../assets/images/Image";
+import { toast } from "react-toastify";
 
-function TechnicianList() {
-  const [data, setData] = useState([]);
-  const [keySearch, setKeySearch] = useState("");
-  const [page, setPage] = useState(1);
+export default function TechnicianList() {
+  const { setLoading } = useLoading();
 
-  const { loading, setLoading } = useLoading();
+  const [technicians, setTechnicians] = useState([]);
+  const [totalRecord, setTotalRecord] = useState(0);
+  const [searchInput, setSearchInput] = useState("");
+
+  // ===== REQUEST giống Customer & Category =====
+  const [request, setRequest] = useState({
+    page: 1,
+    size: 10,
+    keySearch: "",
+    status: "all",
+  });
 
   const [confirmModal, setConfirmModal] = useState({
     open: false,
@@ -22,269 +48,263 @@ function TechnicianList() {
     color: "blue",
   });
 
-  const fetchData = async () => {
+  // ================================= FETCH =================================
+  const fetchTechnicians = async () => {
     setLoading(true);
     try {
-      const res = await technicianApi.getAll({
-        page,
-        size: 10,
-        keySearch,
-        status: "all",
-      });
+      const res = await technicianApi.getAll(request);
 
-      // Chuẩn backend: kiểm tra res.status
-      if (res.status) {
-        setData(res.data?.data || []);
-      } else {
-        toast.error(res.message || "Không thể tải danh sách thợ");
-      }
+      setTechnicians(res?.data?.data || []);
+      setTotalRecord(res?.data?.totalRecord || 0);
     } catch (err) {
-      const errorMsg = err.response?.data?.message || "Lỗi kết nối server";
-      toast.error(errorMsg);
-      console.error(err);
+      console.error("Lỗi lấy danh sách thợ:", err);
     } finally {
       setLoading(false);
     }
   };
+
+  // ========================= SEARCH DEBOUNCE =========================
+  const handleSearchChange = useCallback(
+    debounce((value) => {
+      setRequest((prev) => ({
+        ...prev,
+        keySearch: value,
+        page: 1,
+      }));
+    }, 400),
+    []
+  );
+
   useEffect(() => {
-    const delay = setTimeout(() => {
-      fetchData();
-    }, 400); // chỉ gọi API nếu user ngừng gõ 400ms
+    fetchTechnicians();
+  }, [request]);
 
-    return () => clearTimeout(delay);
-  }, [page, keySearch]);
-
-  // =================== KHÓA TÀI KHOẢN ===================
+  // ========================= MODAL BLOCK / UNBLOCK =========================
   const openBlockModal = (userId, fullName) => {
     setConfirmModal({
       open: true,
       title: "Khóa tài khoản thợ",
-      message: `Bạn có chắc muốn KHÓA tài khoản thợ "${fullName}" không?\n\nSau khi khóa, thợ sẽ không thể đăng nhập và nhận việc nữa.`,
-      confirmText: "Khóa ngay",
+      message: `Bạn có chắc muốn khóa thợ "${fullName}"?`,
+      confirmText: "Khóa",
       color: "red",
       onConfirm: async () => {
         setLoading(true);
         try {
           const res = await apiCommon.updateUserStatus({
-            userId: userId,
+            userId,
             status: "inactive",
           });
 
-          if (res.status) {
-            toast.success(res.message || "Đã khóa tài khoản thợ");
-            fetchData();
-          } else {
-            toast.error(res.message || "Khóa tài khoản thất bại");
-          }
-        } catch (err) {
-          const errorMsg =
-            err.response?.data?.message || "Lỗi khi khóa tài khoản";
-          toast.error(errorMsg);
+          res.status ? toast.success(res.message) : toast.error(res.message);
+          fetchTechnicians();
         } finally {
           setLoading(false);
-          setConfirmModal((prev) => ({ ...prev, open: false }));
+          setConfirmModal((p) => ({ ...p, open: false }));
         }
       },
     });
   };
 
-  // =================== MỞ KHÓA ===================
   const openUnblockModal = (userId, fullName) => {
     setConfirmModal({
       open: true,
       title: "Mở khóa tài khoản thợ",
-      message: `Bạn có chắc muốn MỞ KHÓA tài khoản thợ "${fullName}" không?\n\nThợ sẽ được hoạt động bình thường trở lại.`,
+      message: `Bạn muốn mở khóa thợ "${fullName}"?`,
       confirmText: "Mở khóa",
       color: "green",
       onConfirm: async () => {
         setLoading(true);
         try {
           const res = await apiCommon.updateUserStatus({
-            userId: userId,
+            userId,
             status: "active",
           });
 
-          if (res.status) {
-            toast.success(res.message || "Đã mở khóa tài khoản");
-            fetchData();
-          } else {
-            toast.error(res.message || "Mở khóa thất bại");
-          }
-        } catch (err) {
-          const errorMsg = err.response?.data?.message || "Lỗi khi mở khóa";
-          toast.error(errorMsg);
+          res.status ? toast.success(res.message) : toast.error(res.message);
+          fetchTechnicians();
         } finally {
           setLoading(false);
-          setConfirmModal((prev) => ({ ...prev, open: false }));
+          setConfirmModal((p) => ({ ...p, open: false }));
         }
       },
     });
   };
-
   const handleRefresh = () => {
-    setKeySearch("");
-    fetchData();
+    setSearchInput("");
+    setRequest({
+      page: 1,
+      size: 10,
+      keySearch: "",
+      status: "all", // reset filter
+    });
   };
 
   return (
-    <div className="rounded-lg shadow p-4 bg-white">
+    <div className="p-6 bg-white rounded shadow">
       <h2 className="text-xl font-semibold mb-4">Danh sách thợ</h2>
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <input
-          type="text"
-          placeholder="Tìm kiếm tên hoặc số điện thoại..."
-          className="border p-2 rounded w-[500px]"
-          value={keySearch}
-          onChange={(e) => setKeySearch(e.target.value)}
+
+      {/* ===== SEARCH + FILTER ===== */}
+      <div className="flex items-center gap-3 mb-4">
+        <TextField
+          label="Tìm theo tên hoặc số điện thoại..."
+          size="small"
+          sx={{ width: 350 }}
+          value={searchInput}
+          onChange={(e) => {
+            setSearchInput(e.target.value);
+            handleSearchChange(e.target.value);
+          }}
         />
 
-        <button
-          onClick={handleRefresh}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
+        <FormControl size="small" sx={{ minWidth: 160 }}>
+          <InputLabel>Trạng thái</InputLabel>
+          <Select
+            label="Trạng thái"
+            value={request.status}
+            onChange={(e) =>
+              setRequest((prev) => ({
+                ...prev,
+                status: e.target.value,
+                page: 1,
+              }))
+            }
+          >
+            <MenuItem value="all">Tất cả</MenuItem>
+            <MenuItem value="active">Hoạt động</MenuItem>
+            <MenuItem value="inactive">Ngừng hoạt động</MenuItem>
+          </Select>
+        </FormControl>
+        <Button variant="contained" color="primary" onClick={handleRefresh}>
           Làm mới
-        </button>
+        </Button>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse border border-gray-300 text-sm">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-3 border text-left">Tên thợ</th>
-              <th className="p-3 border text-left">SĐT</th>
-              <th className="p-3 border text-left">Kỹ năng chuyên môn</th>
-              <th className="p-3 border text-center">Kinh nghiệm</th>
-              <th className="p-3 border text-left">Khu vực hoạt động</th>
-              <th className="p-3 border text-left">Mô tả</th>
-              <th className="p-3 border text-center">Chứng chỉ</th>
-              <th className="p-3 border text-center">Trạng thái</th>
-              <th className="p-3 border text-center">Ngày đăng ký</th>
-              <th className="p-3 border text-center">Hành động</th>
-            </tr>
-          </thead>
+      {/* ===== TABLE ===== */}
+      <TableContainer component={Paper} elevation={2}>
+        <Table>
+          <TableHead sx={{ bgcolor: "#8ed1fc" }}>
+            <TableRow>
+              <TableCell>Thông tin thợ</TableCell>
+              <TableCell>Kỹ năng</TableCell>
+              <TableCell align="center">Kinh nghiệm</TableCell>
+              <TableCell align="center">Khu vực</TableCell>
+              <TableCell width={300}>Mô tả</TableCell>
+              <TableCell align="center">Trạng thái</TableCell>
+              <TableCell align="center">Hành động</TableCell>
+            </TableRow>
+          </TableHead>
 
-          <tbody>
-            {data.map((item) => (
-              <tr key={item.user_id} className="hover:bg-gray-50 transition">
-                <td className="p-3 border">
-                  <div className="flex items-center gap-3">
-                    {item.avatar_link ? (
-                      <img
-                        src={item.avatar_link}
-                        alt={item.full_name}
-                        className="w-10 h-10 rounded-full object-cover border"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-600">
-                        {item.full_name.charAt(0)}
-                      </div>
-                    )}
-                    <div>
-                      <div className="font-medium">{item.full_name}</div>
-                      <div className="text-xs text-gray-500">
-                        ID: {item.user_id}
+          <TableBody>
+            {technicians.length > 0 ? (
+              technicians.map((t) => (
+                <TableRow key={t.user_id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      {t.avatar_link ? (
+                        <img
+                          src={t.avatar_link}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-sm font-bold">
+                          {t.full_name?.charAt(0)}
+                        </div>
+                      )}
+                      <div>
+                        <div className="font-medium">{t.full_name}</div>
+                        <div className="text-xs text-gray-500">
+                          ID: {t.user_id}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </td>
+                  </TableCell>
 
-                <td className="p-3 border font-medium">{item.phone}</td>
-
-                <td className="p-3 border">
-                  <span
-                    className="px-3 py-1 rounded-full text-white text-xs font-medium"
-                    style={{
-                      backgroundColor: item.skill_category_color || "#666",
-                    }}
-                  >
-                    {item.skill_category_name}
-                  </span>
-                </td>
-
-                <td className="p-3 border text-center font-semibold text-blue-600">
-                  {item.experience_years} năm
-                </td>
-
-                <td className="p-3 border">Khu vực {item.working_area}</td>
-
-                <td className="p-3 border max-w-[200px] text-gray-700">
-                  {item.description || (
-                    <i className="text-gray-400">Chưa có mô tả</i>
-                  )}
-                </td>
-
-                <td className="p-3 border text-center">
-                  {item.certifications && item.certifications !== "none"
-                    ? "Có"
-                    : "—"}
-                </td>
-
-                <td className="p-3 border text-center">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      item.status === "active"
-                        ? "bg-green-100 text-green-800"
-                        : item.status === "inactive"
-                        ? "bg-red-100 text-red-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
-                  >
-                    {item.status === "active"
-                      ? "Hoạt động"
-                      : item.status === "inactive"
-                      ? "Bị khóa"
-                      : "Chờ duyệt"}
-                  </span>
-                </td>
-
-                <td className="p-3 border text-center text-xs">
-                  {new Date(item.created_at).toLocaleDateString("vi-VN")}
-                </td>
-
-                <td className="p-3 border text-center">
-                  {item.status === "active" ? (
-                    <button
-                      onClick={() =>
-                        openBlockModal(item.user_id, item.full_name)
-                      }
-                      className="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium transition shadow-sm"
+                  <TableCell>
+                    <span
+                      className="px-3 py-1 text-white rounded-full text-xs"
+                      style={{ backgroundColor: t.skill_category_color }}
                     >
-                      Khóa tài khoản
-                    </button>
-                  ) : item.status === "inactive" ? (
-                    <button
-                      onClick={() =>
-                        openUnblockModal(item.user_id, item.full_name)
-                      }
-                      className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium transition shadow-sm"
-                    >
-                      Mở khóa
-                    </button>
-                  ) : (
-                    <span className="text-gray-500 text-xs italic">
-                      Chờ duyệt
+                      {t.skill_category_name}
                     </span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  </TableCell>
 
+                  <TableCell align="center">{t.experience_years} năm</TableCell>
+
+                  <TableCell align="center">{t.working_area}</TableCell>
+
+                  <TableCell>{t.description || "—"}</TableCell>
+
+                  <TableCell align="center">
+                    <span
+                      style={{
+                        padding: "4px 8px",
+                        borderRadius: 6,
+                        fontWeight: 600,
+                        background:
+                          t.status === "active" ? "#d4f8d4" : "#ffd7d7",
+                        color: t.status === "active" ? "green" : "red",
+                      }}
+                    >
+                      {t.status === "active" ? "Hoạt động" : "Ngừng hoạt động"}
+                    </span>
+                  </TableCell>
+
+                  <TableCell align="center">
+                    {t.status === "active" ? (
+                      <Button
+                        variant="contained"
+                        color="error"
+                        size="small"
+                        onClick={() => openBlockModal(t.user_id, t.full_name)}
+                      >
+                        Khóa
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="contained"
+                        color="success"
+                        size="small"
+                        onClick={() => openUnblockModal(t.user_id, t.full_name)}
+                      >
+                        Mở khóa
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell align="center" colSpan={100}>
+                  <div className="py-6 flex flex-col items-center justify-center">
+                    <img src={images.emptyBox} width={120} />
+                    <p className="text-gray-600 mt-2">Không có dữ liệu</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* ===== PAGINATION ===== */}
+      <PaginationContainer
+        display={technicians.length > 0}
+        totalRecord={totalRecord}
+        dataFilter={request}
+        setDataFilter={setRequest}
+      />
+
+      {/* ===== MODAL ===== */}
       <ConfirmModal
         isOpen={confirmModal.open}
         title={confirmModal.title}
         message={confirmModal.message}
         confirmText={confirmModal.confirmText}
         cancelText="Hủy"
-        loading={loading}
         color={confirmModal.color}
         onConfirm={confirmModal.onConfirm}
-        onCancel={() => setConfirmModal((prev) => ({ ...prev, open: false }))}
+        onCancel={() => setConfirmModal((p) => ({ ...p, open: false }))}
       />
     </div>
   );
 }
-
-export default TechnicianList;

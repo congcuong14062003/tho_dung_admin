@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 
-const PaginationContainer = ({ display = false, totalRecord = 0, setDataFilter, dataFilter }) => {
+const PaginationContainer = ({
+  display = false,
+  totalRecord = 0,
+  setDataFilter,
+  dataFilter,
+}) => {
   const [initIdPage, setInitIdPage] = useState(0);
   const [lastIdPage, setLastIdPage] = useState(0);
 
@@ -37,7 +42,11 @@ const PaginationContainer = ({ display = false, totalRecord = 0, setDataFilter, 
   const totalPage = Math.ceil(totalRecord / dataFilter.size);
 
   return (
-    <div className={`mt-4 flex flex-wrap justify-between items-center ${!display && "hidden"}`}>
+    <div
+      className={`mt-4 flex flex-wrap justify-between items-center ${
+        !display && "hidden"
+      }`}
+    >
       {/* Left text */}
       <div className="text-gray-700 text-sm">
         {`Hiển thị từ ${initIdPage} đến ${lastIdPage} trong tổng số ${totalRecord} kết quả`}
@@ -52,6 +61,7 @@ const PaginationContainer = ({ display = false, totalRecord = 0, setDataFilter, 
           onChange={handleChangeResultValue}
           className="border border-gray-300 rounded-lg px-2 py-1 text-sm bg-white"
         >
+          <option value="5">5</option>
           <option value="10">10</option>
           <option value="20">20</option>
           <option value="50">50</option>

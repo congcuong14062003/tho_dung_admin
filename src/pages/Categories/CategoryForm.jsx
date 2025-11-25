@@ -28,6 +28,7 @@ export default function CategoryForm({ open, onClose, category }) {
   const { setLoading } = useLoading();
 
   const [formData, setFormData] = useState({
+    id: null,
     name: "",
     description: "",
     icon: null,
@@ -40,6 +41,7 @@ export default function CategoryForm({ open, onClose, category }) {
   useEffect(() => {
     if (category) {
       setFormData({
+        id: category.id || null,
         name: category.name || "",
         description: category.description || "",
         icon: null,
@@ -49,6 +51,7 @@ export default function CategoryForm({ open, onClose, category }) {
       setPreview(category.icon || null);
     } else {
       setFormData({
+        id: null,
         name: "",
         description: "",
         icon: null,
@@ -86,6 +89,7 @@ export default function CategoryForm({ open, onClose, category }) {
     setLoading(true);
 
     const data = new FormData();
+    data.append("id", formData.id);
     data.append("name", formData.name);
     data.append("description", formData.description);
     data.append("color", formData.color);
@@ -96,7 +100,7 @@ export default function CategoryForm({ open, onClose, category }) {
     try {
       let result;
       if (category) {
-        result = await categoryApi.update(category.id, data);
+        result = await categoryApi.update(data);
         result.status
           ? toast.success("Cập nhật danh mục thành công!")
           : toast.error(result.message);
@@ -193,7 +197,12 @@ export default function CategoryForm({ open, onClose, category }) {
           </Typography>
           <Button variant="outlined" component="label">
             Chọn ảnh
-            <input type="file" hidden accept="image/*" onChange={handleFileChange} />
+            <input
+              type="file"
+              hidden
+              accept="image/*"
+              onChange={handleFileChange}
+            />
           </Button>
 
           {preview && (
@@ -213,7 +222,10 @@ export default function CategoryForm({ open, onClose, category }) {
           )}
         </Box>
 
-        <Box mt={3} sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
+        <Box
+          mt={3}
+          sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}
+        >
           <Button onClick={onClose}>Hủy</Button>
           <Button variant="contained" onClick={handleSubmit}>
             Lưu

@@ -17,6 +17,8 @@ import {
   TextField,
   Select,
   MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 
 import PaginationContainer from "../../components/PaginationContainer";
@@ -34,9 +36,9 @@ function Categories() {
   // Giống Services: 1 object request
   const [request, setRequest] = useState({
     page: 1,
-    size: 10,
+    size: 5,
     keySearch: "",
-    status: "",
+    status: "all",
   });
 
   const [searchInput, setSearchInput] = useState("");
@@ -99,7 +101,7 @@ function Categories() {
       page: 1,
       size: 10,
       keySearch: "",
-      status: "", // reset filter
+      status: "all", // reset filter
     });
   };
 
@@ -139,26 +141,28 @@ function Categories() {
           sx={{ width: 400 }}
         />
 
-        {/* 🔥 Select lọc status */}
-        <Select
-          size="small"
-          value={request.status ?? ""}
-          onChange={(e) =>
-            setRequest((prev) => ({
-              ...prev,
-              status: e.target.value,
-              page: 1,
-            }))
-          }
-          displayEmpty // 🔥 Quan trọng
-          sx={{ width: 160 }}
-        >
-          <MenuItem value="">
-            <em>Tất cả</em>
-          </MenuItem>
-          <MenuItem value="active">Hoạt động</MenuItem>
-          <MenuItem value="inactive">Ngừng hoạt động</MenuItem>
-        </Select>
+        <FormControl sx={{ minWidth: 160 }} size="small">
+          <InputLabel>Trạng thái</InputLabel>
+          {/* 🔥 Select lọc status */}
+          <Select
+            label="Trạng thái"
+            size="small"
+            value={request.status ?? "all"}
+            onChange={(e) =>
+              setRequest((prev) => ({
+                ...prev,
+                status: e.target.value,
+                page: 1,
+              }))
+            }
+            displayEmpty // 🔥 Quan trọng
+            sx={{ width: 160 }}
+          >
+            <MenuItem value="all">Tất cả</MenuItem>
+            <MenuItem value="active">Hoạt động</MenuItem>
+            <MenuItem value="inactive">Ngừng hoạt động</MenuItem>
+          </Select>
+        </FormControl>
 
         <Button variant="contained" color="primary" onClick={handleRefresh}>
           Làm mới
@@ -244,7 +248,7 @@ function Categories() {
               ))
             ) : (
               <TableRow>
-                <TableCell align="center" colSpan={6}>
+                <TableCell align="center" colSpan={100}>
                   <div className="py-6 flex flex-col items-center justify-center">
                     <img src={images.emptyBox} width={120} />
                     <p className="text-gray-600 mt-2">Không có dữ liệu</p>

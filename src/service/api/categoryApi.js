@@ -12,8 +12,8 @@ const categoryApi = {
     });
   },
   // 🔹 Cập nhật danh mục
-  update: (id, data) => {
-    return axiosClient.post(`/categories/admin/update-category/${id}`, data, {
+  update: (data) => {
+    return axiosClient.post("/categories/admin/update-category", data, {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },

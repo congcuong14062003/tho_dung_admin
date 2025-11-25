@@ -25,7 +25,7 @@ function Technician() {
           }`}
           onClick={() => setTab("pending")}
         >
-          Yêu cầu chờ duyệt
+          Quản lý yêu cầu làm thợ
         </button>
       </div>
 
