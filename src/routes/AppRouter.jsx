@@ -7,6 +7,7 @@ import Services from "../pages/Services";
 import Requests from "../pages/Request";
 import Technician from "../pages/Technician";
 import Customer from "../pages/Customer";
+import RequestDetailPage from "../pages/Request/RequestDetailPage";
 
 export default function AppRoutes({
   setLoading,
@@ -46,6 +47,11 @@ export default function AppRoutes({
     {
       path: "/requests",
       element: <Requests />,
+      // không khai báo layout → sẽ dùng layout mặc định
+    },
+     {
+      path: "/requests/:id",
+      element: <RequestDetailPage />,
       // không khai báo layout → sẽ dùng layout mặc định
     },
   ];

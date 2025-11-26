@@ -146,7 +146,7 @@ export default function TechnicianList() {
       {/* ===== SEARCH + FILTER ===== */}
       <div className="flex items-center gap-3 mb-4">
         <TextField
-          label="Tìm theo tên hoặc số điện thoại..."
+          label="Tìm theo mã, tên, số điện thoại thợ..."
           size="small"
           sx={{ width: 350 }}
           value={searchInput}
@@ -220,12 +220,25 @@ export default function TechnicianList() {
                   </TableCell>
 
                   <TableCell>
-                    <span
-                      className="px-3 py-1 text-white rounded-full text-xs"
-                      style={{ backgroundColor: t.skill_category_color }}
-                    >
-                      {t.skill_category_name}
-                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {t.skills && t.skills.length > 0 ? (
+                        t.skills.map((skill) => (
+                          <span
+                            key={skill.id}
+                            className="px-3 py-1 text-white rounded-full text-xs"
+                            style={{
+                              backgroundColor: skill.color || "#666",
+                            }}
+                          >
+                            {skill.name}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-gray-400 text-xs">
+                          Chưa có kỹ năng
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
 
                   <TableCell align="center">{t.experience_years} năm</TableCell>

@@ -13,39 +13,25 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Tạo device_id
-  const getDeviceId = () => {
-    let id = localStorage.getItem("device_id");
-    if (!id) {
-      id = "dev_" + Math.random().toString(36).substring(2, 15);
-      localStorage.setItem("device_id", id);
-    }
-    return id;
-  };
-
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      // 🔥 lấy FCM token
-      const fcm_token = await requestForToken();
+      const fcm_token = localStorage.getItem("fcm_token");
+      console.log("fcm_token: ", fcm_token);
 
-      // 🔥 lấy deviceId
-      const device_id = getDeviceId();
-
-      // 🔥 gọi API login gửi thêm fcm_token & device_id
+      // 🔥 Gọi API login
       const res = await authApi.login({
         phone,
         password,
         fcm_token,
-        device_id,
       });
 
       if (res.status) {
         login(res.data.token);
-        navigate("/"); // vào trang chủ
+        navigate("/");
       } else {
         toast.error(res.message);
       }

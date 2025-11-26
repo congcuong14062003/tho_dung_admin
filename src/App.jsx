@@ -14,9 +14,6 @@ import Loading from "./components/Loading/Loading";
 // Firebase
 import { requestForToken, onMessageListener } from "./firebase";
 
-// Socket.IO
-import { io } from "socket.io-client";
-
 function App() {
   const { token, user } = useAuth();
   const location = useLocation();
@@ -34,48 +31,31 @@ function App() {
     return null;
   }
 
-  // ============================
-  // 🔥 Firebase FCM
-  // ============================
   useEffect(() => {
-    if (!token) return;
-
-    console.log("📌 Lấy FCM token...");
-    requestForToken();
-
+    console.log("📌 Lấy FCM token trước khi login...");
+    requestForToken().then((token) => {
+      if (token) {
+        localStorage.setItem("fcm_token", token);
+      }
+    });
     onMessageListener().then((payload) => {
       toast.info(
-        `${payload.notification.title}: ${payload.notification.body}`
+        <div
+          onClick={() => {
+            if (payload?.data?.url) window.location.href = payload.data.url;
+          }}
+          style={{ cursor: "pointer" }}
+        >
+          {payload.notification.title}: {payload.notification.body}
+        </div>,
+        {
+          autoClose: 10000, // ⬅️ riêng cho toast này
+          closeOnClick: true,
+          pauseOnHover: true,
+        }
       );
     });
-  }, [token]);
-
-  // ============================
-  // 🔥 Socket.IO
-  // ============================
-  useEffect(() => {
-    if (!token || !user) return;
-
-    const socket = io(import.meta.env.VITE_API_URL, {
-      transports: ["websocket"],
-    });
-
-    socket.emit("join", user.id || "admin");
-
-    // Nhận realtime request mới
-    socket.on("new_request", (data) => {
-      toast.info(`🔥 Yêu cầu mới: ${data?.message}`);
-    });
-
-    // Nhận cập nhật từ thợ
-    socket.on("technician_update", (data) => {
-      toast.success(`🛠 Cập nhật: ${data?.message}`);
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [token, user]);
+  }, []);
 
   return (
     <LoadingProvider>

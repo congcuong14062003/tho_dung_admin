@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Modal,
   Box,
@@ -18,13 +18,17 @@ import {
 import requestApi from "../../service/api/requestApi";
 import { toast } from "react-toastify";
 import technicianApi from "../../service/api/technicianApi";
+import { useLoading } from "../../context/LoadingContext";
+import PaginationContainer from "../../components/PaginationContainer";
+import { debounce } from "../../utils/functions";
+import images from "../../assets/images/Image";
 
 const style = {
   position: "absolute",
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: 700,
+  width: "80%",
   bgcolor: "background.paper",
   borderRadius: "10px",
   boxShadow: 24,
@@ -37,38 +41,39 @@ export default function AssignWorkerModal({
   requestId,
   onSuccess,
 }) {
-  const [workers, setWorkers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const { setLoading } = useLoading();
+
+  const [technicians, setTechnicians] = useState([]);
+  const [totalRecord, setTotalRecord] = useState(0);
+  const [searchInput, setSearchInput] = useState("");
   const [page, setPage] = useState(1);
-  const [size] = useState(10);
-  const [keySearch, setKeySearch] = useState("");
-  const [totalPages, setTotalPages] = useState(1);
   const [selectedWorker, setSelectedWorker] = useState(null);
   const [assigning, setAssigning] = useState(false);
 
-  const fetchWorkers = async () => {
+  // ===== REQUEST giống Customer & Category =====
+  const [request, setRequest] = useState({
+    page: 1,
+    size: 10,
+    keySearch: "",
+    status: "active",
+  });
+  const fetchTechnicians = async () => {
     setLoading(true);
     try {
-      const res = await technicianApi.getAll({
-        page,
-        size,
-        keySearch,
-        status: "active",
-      });
-      if (res.status) {
-        setWorkers(res.data.data);
-        setTotalPages(res.data.totalPages);
-      }
+      const res = await technicianApi.getAll(request);
+
+      setTechnicians(res?.data?.data || []);
+      setTotalRecord(res?.data?.totalRecord || 0);
     } catch (err) {
-      console.error("Lỗi khi tải danh sách thợ:", err);
+      console.error("Lỗi lấy danh sách thợ:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (open) fetchWorkers();
-  }, [open, page, keySearch]);
+    fetchTechnicians();
+  }, [open, request]);
 
   const handleAssign = async () => {
     if (!selectedWorker) return toast.warn("Vui lòng chọn thợ để gán!");
@@ -92,7 +97,26 @@ export default function AssignWorkerModal({
       setAssigning(false);
     }
   };
-
+  // ========================= SEARCH DEBOUNCE =========================
+  const handleSearchChange = useCallback(
+    debounce((value) => {
+      setRequest((prev) => ({
+        ...prev,
+        keySearch: value,
+        page: 1,
+      }));
+    }, 400),
+    []
+  );
+  const handleRefresh = () => {
+    setSearchInput("");
+    setRequest({
+      page: 1,
+      size: 10,
+      keySearch: "",
+      status: "all", // reset filter
+    });
+  };
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={style}>
@@ -100,44 +124,69 @@ export default function AssignWorkerModal({
           Gán thợ cho yêu cầu
         </Typography>
 
-        <TextField
-          label="Tìm kiếm thợ"
-          fullWidth
-          size="small"
-          value={keySearch}
-          onChange={(e) => setKeySearch(e.target.value)}
-          sx={{ mb: 2 }}
-        />
+        <div className="flex items-center gap-3 mb-4">
+          <TextField
+            label="Tìm theo tên hoặc số điện thoại..."
+            size="small"
+            sx={{ width: 500 }}
+            value={searchInput}
+            onChange={(e) => {
+              setSearchInput(e.target.value);
+              handleSearchChange(e.target.value);
+            }}
+          />
+          <Button variant="contained" color="primary" onClick={handleRefresh}>
+            Làm mới
+          </Button>
+        </div>
 
-        {loading ? (
-          <Box display="flex" justifyContent="center" py={4}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Ảnh</TableCell>
-                <TableCell>Tên thợ</TableCell>
-                <TableCell>Số điện thoại</TableCell>
-                <TableCell>Kỹ năng chuyên môn</TableCell>
-                <TableCell align="center">Chọn</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {workers.map((w) => (
-                <TableRow
-                  key={w.id}
-                  hover
-                  selected={selectedWorker?.id === w.id}
-                  onClick={() => setSelectedWorker(w)}
-                >
+        <Table stickyHeader>
+          <TableHead
+            sx={{
+              "& .MuiTableCell-head": {
+                backgroundColor: "#8ed1fc",
+                fontWeight: 600,
+              },
+            }}
+          >
+            <TableRow>
+              <TableCell>Ảnh</TableCell>
+              <TableCell>Tên thợ</TableCell>
+              <TableCell>Số điện thoại</TableCell>
+              <TableCell>Kỹ năng chuyên môn</TableCell>
+              <TableCell align="center">Chọn</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {technicians.length > 0 ? (
+              technicians.map((w) => (
+                <TableRow key={w.user_id}>
                   <TableCell>
                     <Avatar src={w.avatar_link} />
                   </TableCell>
                   <TableCell>{w.full_name}</TableCell>
                   <TableCell>{w.phone}</TableCell>
-                  <TableCell>{w.skill_category_name}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-2">
+                      {w.skills && w.skills.length > 0 ? (
+                        w.skills.map((skill) => (
+                          <span
+                            key={skill.id}
+                            className="px-3 py-1 text-white rounded-full text-xs"
+                            style={{
+                              backgroundColor: skill.color || "#666",
+                            }}
+                          >
+                            {skill.name}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-gray-400 text-xs">
+                          Chưa có kỹ năng
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell align="center">
                     <Checkbox
                       checked={selectedWorker?.user_id === w.user_id}
@@ -146,18 +195,26 @@ export default function AssignWorkerModal({
                     />
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+              ))
+            ) : (
+              <TableRow>
+                <TableCell align="center" colSpan={100}>
+                  <div className="py-6 flex flex-col items-center justify-center">
+                    <img src={images.emptyBox} width={120} />
+                    <p className="text-gray-600 mt-2">Không có dữ liệu</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
 
-        <Box display="flex" justifyContent="center" mt={2}>
-          <Pagination
-            count={totalPages}
-            page={page}
-            onChange={(e, value) => setPage(value)}
-          />
-        </Box>
+        <PaginationContainer
+          display={technicians.length > 0}
+          totalRecord={totalRecord}
+          dataFilter={request}
+          setDataFilter={setRequest}
+        />
 
         <Box display="flex" justifyContent="flex-end" mt={3}>
           <Button onClick={onClose} sx={{ mr: 1 }}>

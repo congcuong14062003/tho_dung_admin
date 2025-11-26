@@ -4,10 +4,17 @@ import Header from "./Header/Header";
 export default function DefaultLayout({ children }) {
   return (
     <div className="flex min-h-screen">
-      <Sidebar />
-      <div className="flex flex-col flex-1">
+      {/* Sidebar cố định */}
+      <div className="fixed left-0 top-0 h-screen">
+        <Sidebar />
+      </div>
+
+      {/* Phần còn lại dịch sang phải */}
+      <div className="flex flex-col flex-1 ml-64">
         <Header />
-        <main className="flex-1 p-6 mt-16">{children}</main>
+
+        {/* Nội dung scroll */}
+        <main className="flex-1 overflow-y-auto p-6 mt-16">{children}</main>
       </div>
     </div>
   );

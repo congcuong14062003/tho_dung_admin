@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
-
+import authApi from "../../service/api/authApi";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -20,9 +20,21 @@ export default function Header() {
     }
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      const fcm_token = localStorage.getItem("fcm_token");
+      await authApi.logout({
+        fcm_token,
+      });
+    } catch (err) {
+      console.error("Logout API lỗi:", err);
+    }
+
+    // Xóa token + fcm
     logout();
     Cookies.remove("token");
+    localStorage.removeItem("fcm_token");
+
     navigate("/login");
   };
 

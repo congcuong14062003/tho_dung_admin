@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import requestApi from "../../service/api/requestApi";
-import RequestDetail from "./RequestDetail";
+// import RequestDetail from "./RequestDetail";
 import { STATUS_CONFIG } from "../../config/statusConfig";
 import { toast } from "react-toastify";
 import { useLoading } from "../../context/LoadingContext";
@@ -24,13 +24,16 @@ import {
 
 import PaginationContainer from "../../components/PaginationContainer";
 import images from "../../assets/images/Image";
+import { useNavigate } from "react-router-dom";
 
 function Requests() {
+  const navigate = useNavigate();
+
   const { setLoading } = useLoading();
 
   const [requests, setRequests] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [openModal, setOpenModal] = useState(false);
+  // const [selected, setSelected] = useState(null);
+  // const [openModal, setOpenModal] = useState(false);
   const [totalRecord, setTotalRecord] = useState(0);
 
   // 🎯 request filter object (giống Category)
@@ -81,16 +84,16 @@ function Requests() {
 
   /** ===================== ACTIONS ===================== */
 
-  const handleViewDetail = (req) => {
-    setSelected(req);
-    setOpenModal(true);
-  };
+  // const handleViewDetail = (req) => {
+  //   setSelected(req);
+  //   setOpenModal(true);
+  // };
 
-  const handleCloseModal = () => {
-    setOpenModal(false);
-    setSelected(null);
-    fetchRequests();
-  };
+  // const handleCloseModal = () => {
+  //   setOpenModal(false);
+  //   setSelected(null);
+  //   fetchRequests();
+  // };
 
   const handleRefresh = () => {
     setSearchInput("");
@@ -178,9 +181,20 @@ function Requests() {
       </div>
 
       {/* Table */}
-      <TableContainer component={Paper} elevation={2}>
-        <Table>
-          <TableHead sx={{ bgcolor: "#8ed1fc" }}>
+      <TableContainer
+        component={Paper}
+        elevation={2}
+        sx={{ maxHeight: "calc(100vh - 260px)", overflowY: "auto" }}
+      >
+        <Table stickyHeader>
+          <TableHead
+            sx={{
+              "& .MuiTableCell-head": {
+                backgroundColor: "#8ed1fc",
+                fontWeight: 600,
+              },
+            }}
+          >
             <TableRow>
               <TableCell>Mã yêu cầu</TableCell>
               <TableCell>Tên khách</TableCell>
@@ -213,7 +227,7 @@ function Requests() {
                     <Button
                       variant="contained"
                       size="small"
-                      onClick={() => handleViewDetail(item)}
+                      onClick={() => navigate(`/requests/${item.id}`)}
                     >
                       Xem
                     </Button>
@@ -243,12 +257,12 @@ function Requests() {
       />
 
       {/* Modal Detail */}
-      <RequestDetail
+      {/* <RequestDetail
         open={openModal}
         onClose={handleCloseModal}
         requestId={selected?.id}
         handleGetList={fetchRequests}
-      />
+      /> */}
     </div>
   );
 }

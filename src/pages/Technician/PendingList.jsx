@@ -155,7 +155,7 @@ export default function PendingList() {
       {/* ===== SEARCH + FILTER ===== */}
       <div className="flex items-center gap-3 mb-4">
         <TextField
-          label="Tìm tên hoặc số điện thoại..."
+          label="Tìm theo mã, tên, số điện thoại..."
           size="small"
           sx={{ width: 350 }}
           value={searchInput}
@@ -236,14 +236,25 @@ export default function PendingList() {
                   <TableCell>{item.phone}</TableCell>
 
                   <TableCell>
-                    <span
-                      className="px-3 py-1 text-white rounded-full text-xs"
-                      style={{
-                        backgroundColor: item.skill_category_color || "#666",
-                      }}
-                    >
-                      {item.skill_category_name}
-                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {item.skills && item.skills.length > 0 ? (
+                        item.skills.map((skill) => (
+                          <span
+                            key={skill.id}
+                            className="px-3 py-1 text-white rounded-full text-xs"
+                            style={{
+                              backgroundColor: skill.color || "#666",
+                            }}
+                          >
+                            {skill.name}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-gray-400 text-xs">
+                          Chưa có kỹ năng
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
 
                   <TableCell align="center">
