@@ -85,21 +85,11 @@ function Categories() {
     setOpenModal(true);
   };
 
-  const handleDelete = async (id) => {
-    try {
-      const res = await categoryApi.delete(id);
-      res?.status ? toast.success(res.message) : toast.error(res.message);
-      fetchCategories();
-    } catch {
-      toast.error("Không thể xóa danh mục");
-    }
-  };
-
   const handleRefresh = () => {
     setSearchInput("");
     setRequest({
       page: 1,
-      size: 10,
+      size: 5,
       keySearch: "",
       status: "all", // reset filter
     });
@@ -119,7 +109,7 @@ function Categories() {
   /** ===================== RENDER ===================== */
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-white rounded shadow">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Quản lý danh mục</h2>

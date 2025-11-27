@@ -39,7 +39,7 @@ function Requests() {
   // 🎯 request filter object (giống Category)
   const [filter, setFilter] = useState({
     page: 1,
-    size: 10,
+    size: 5,
     keySearch: "",
     status: "all",
   });
@@ -99,7 +99,7 @@ function Requests() {
     setSearchInput("");
     setFilter({
       page: 1,
-      size: 10,
+      size: 5,
       keySearch: "",
       status: "all",
     });
@@ -130,7 +130,7 @@ function Requests() {
   /** ===================== RENDER ===================== */
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-white rounded shadow">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Quản lý yêu cầu</h2>

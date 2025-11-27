@@ -35,7 +35,7 @@ export default function PendingList() {
   // ===== REQUEST FILTER =====
   const [request, setRequest] = useState({
     page: 1,
-    size: 10,
+    size: 5,
     keySearch: "",
     status: "all",
   });
@@ -140,14 +140,14 @@ export default function PendingList() {
     setSearchInput("");
     setRequest({
       page: 1,
-      size: 10,
+      size: 5,
       keySearch: "",
       status: "all",
     });
   };
 
   return (
-    <div className="p-6 bg-white rounded shadow">
+    <div className="p-2">
       <h2 className="text-xl font-semibold mb-4">
         Danh sách quản lý duyệt thợ
       </h2>
@@ -191,20 +191,37 @@ export default function PendingList() {
       </div>
 
       {/* ===== TABLE ===== */}
-      <TableContainer component={Paper} elevation={2}>
-        <Table>
-          <TableHead sx={{ bgcolor: "#8ed1fc" }}>
+      <TableContainer
+        component={Paper}
+        elevation={2}
+        sx={{ maxHeight: "calc(100vh - 260px)", overflowY: "auto" }}
+      >
+        <Table stickyHeader>
+          <TableHead
+            sx={{
+              "& .MuiTableCell-head": {
+                backgroundColor: "#8ed1fc",
+                fontWeight: 600,
+              },
+            }}
+          >
             <TableRow>
               <TableCell>Thợ đăng ký</TableCell>
               <TableCell>SĐT</TableCell>
-              <TableCell>Chuyên môn</TableCell>
+              <TableCell align="center">Loại yêu cầu</TableCell>
+
+              <TableCell width={120}>Chuyên môn</TableCell>
               <TableCell align="center">Năm KN</TableCell>
-              <TableCell>Khu vực</TableCell>
-              <TableCell>Mô tả</TableCell>
+              <TableCell width={100}> Khu vực</TableCell>
+              <TableCell width={150}>Mô tả</TableCell>
               <TableCell align="center">Chứng chỉ</TableCell>
-              <TableCell align="center">Trạng thái</TableCell>
+              <TableCell width={150} align="center">
+                Trạng thái
+              </TableCell>
               <TableCell align="center">Ngày nộp</TableCell>
-              <TableCell align="center">Hành động</TableCell>
+              <TableCell width={200} align="center">
+                Hành động
+              </TableCell>
             </TableRow>
           </TableHead>
 
@@ -232,8 +249,15 @@ export default function PendingList() {
                       </div>
                     </div>
                   </TableCell>
-
                   <TableCell>{item.phone}</TableCell>
+
+                  <TableCell align="center">
+                    <p>
+                      {item.type === "new"
+                        ? "Yêu cầu làm thợ"
+                        : "Chỉnh sửa thông tin thợ"}
+                    </p>
+                  </TableCell>
 
                   <TableCell>
                     <div className="flex flex-wrap gap-2">
@@ -268,9 +292,7 @@ export default function PendingList() {
                   </TableCell>
 
                   <TableCell align="center">
-                    {item.certifications && item.certifications !== "none"
-                      ? "Có"
-                      : "—"}
+                    {item.certifications && item.certifications}
                   </TableCell>
 
                   <TableCell align="center">

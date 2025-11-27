@@ -5,9 +5,23 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(Cookies.get("token"));
+  const decodeToken = (token) => {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return payload;
+    } catch (err) {
+      return null;
+    }
+  };
 
   const login = (newToken) => {
-    Cookies.set("token", newToken, { expires: 7 }); // lưu 7 ngày
+    const payload = decodeToken(newToken);
+    if (payload?.exp) {
+      const expires = new Date(payload.exp * 1000); // convert timestamp
+      Cookies.set("token", newToken, { expires });
+    } else {
+      Cookies.set("token", newToken);
+    }
     setToken(newToken);
   };
 

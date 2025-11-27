@@ -53,7 +53,7 @@ export default function AssignWorkerModal({
   // ===== REQUEST giống Customer & Category =====
   const [request, setRequest] = useState({
     page: 1,
-    size: 10,
+    size: 5,
     keySearch: "",
     status: "active",
   });
@@ -112,7 +112,7 @@ export default function AssignWorkerModal({
     setSearchInput("");
     setRequest({
       page: 1,
-      size: 10,
+      size: 5,
       keySearch: "",
       status: "all", // reset filter
     });

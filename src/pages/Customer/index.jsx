@@ -35,7 +35,7 @@ export default function Customer() {
   // ===== REQUEST giống Categories =====
   const [request, setRequest] = useState({
     page: 1,
-    size: 10,
+    size: 5,
     keySearch: "",
     status: "all",
   });
@@ -134,7 +134,7 @@ export default function Customer() {
     setSearchInput("");
     setRequest({
       page: 1,
-      size: 10,
+      size: 5,
       keySearch: "",
       status: "all", // reset filter
     });
@@ -143,7 +143,6 @@ export default function Customer() {
   return (
     <div className="p-6 bg-white rounded shadow">
       <h2 className="text-xl font-semibold mb-4">Danh sách khách hàng</h2>
-
       {/* ==== SEARCH + FILTER ==== */}
       <div className="flex items-center gap-3 mb-4">
         <TextField

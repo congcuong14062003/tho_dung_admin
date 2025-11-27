@@ -95,7 +95,7 @@ function Services() {
     setSearchInput("");
     setRequest({
       page: 1,
-      size: 10,
+      size: 5,
       keySearch: "",
       catId: "all",
       status: "all", // reset filter
@@ -116,7 +116,7 @@ function Services() {
   /** ===================== RENDER ===================== */
 
   return (
-    <div className="p-6">
+      <div className="p-6 bg-white rounded shadow">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Quản lý dịch vụ</h2>

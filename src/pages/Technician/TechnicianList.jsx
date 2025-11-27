@@ -34,7 +34,7 @@ export default function TechnicianList() {
   // ===== REQUEST giống Customer & Category =====
   const [request, setRequest] = useState({
     page: 1,
-    size: 10,
+    size: 5,
     keySearch: "",
     status: "all",
   });
@@ -133,14 +133,14 @@ export default function TechnicianList() {
     setSearchInput("");
     setRequest({
       page: 1,
-      size: 10,
+      size: 5,
       keySearch: "",
       status: "all", // reset filter
     });
   };
 
   return (
-    <div className="p-6 bg-white rounded shadow">
+    <div className="p-2">
       <h2 className="text-xl font-semibold mb-4">Danh sách thợ</h2>
 
       {/* ===== SEARCH + FILTER ===== */}

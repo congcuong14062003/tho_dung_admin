@@ -6,7 +6,7 @@ function Technician() {
   const [tab, setTab] = useState("list");
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-white rounded shadow">
       <h1 className="text-2xl font-semibold mb-4">Quản lý thợ</h1>
 
       <div className="flex gap-4 mb-6">
