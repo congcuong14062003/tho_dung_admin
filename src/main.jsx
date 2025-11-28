@@ -14,3 +14,13 @@ createRoot(document.getElementById("root")).render(
     </BrowserRouter>
   </StrictMode>
 );
+
+// =============================
+// 🔥 ĐĂNG KÝ SERVICE WORKER FCM
+// =============================
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker
+    .register("/firebase-messaging-sw.js")
+    .then((reg) => console.log("🔥 SW đăng ký thành công:", reg))
+    .catch((err) => console.error("❌ SW đăng ký lỗi:", err));
+}

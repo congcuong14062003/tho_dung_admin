@@ -1,58 +1,39 @@
+import PublicRoute from "./PublicRoute";
+import PrivateRoute from "./PrivateRoute";
 import { Routes, Route } from "react-router-dom";
+
 import Dashboard from "../pages/Dashboard";
 import Login from "../pages/Login";
-import NoLayout from "../layout/NoLayout"; // Layout trống cho các trang như login
+import NoLayout from "../layout/NoLayout";
 import Categories from "../pages/Categories";
 import Services from "../pages/Services";
 import Requests from "../pages/Request";
 import Technician from "../pages/Technician";
 import Customer from "../pages/Customer";
 import RequestDetailPage from "../pages/Request/RequestDetailPage";
+import NotFound from "../pages/NotFound/NotFound";
 
-export default function AppRoutes({
-  setLoading,
-  defaultLayout: DefaultLayout,
-}) {
+export default function AppRoutes({ defaultLayout: DefaultLayout }) {
   const routes = [
     {
       path: "/login",
       element: <Login />,
-      layout: NoLayout, // layout riêng, không có sidebar + header
+      layout: NoLayout,
+      public: true,
     },
+    { path: "/", element: <Dashboard />, protected: true },
+    { path: "/categories", element: <Categories />, protected: true },
+    { path: "/services", element: <Services />, protected: true },
+    { path: "/technicians", element: <Technician />, protected: true },
+    { path: "/customers", element: <Customer />, protected: true },
+    { path: "/requests", element: <Requests />, protected: true },
+    { path: "/requests/:id", element: <RequestDetailPage />, protected: true },
+
+    // ⭐ 404 — không public, không protected
     {
-      path: "/",
-      element: <Dashboard />,
-      // không khai báo layout → sẽ dùng layout mặc định
-    },
-    {
-      path: "/categories",
-      element: <Categories />,
-      // không khai báo layout → sẽ dùng layout mặc định
-    },
-    {
-      path: "/services",
-      element: <Services />,
-      // không khai báo layout → sẽ dùng layout mặc định
-    },
-    {
-      path: "/technicians",
-      element: <Technician />,
-      // không khai báo layout → sẽ dùng layout mặc định
-    },
-    {
-      path: "/customers",
-      element: <Customer />,
-      // không khai báo layout → sẽ dùng layout mặc định
-    },
-    {
-      path: "/requests",
-      element: <Requests />,
-      // không khai báo layout → sẽ dùng layout mặc định
-    },
-     {
-      path: "/requests/:id",
-      element: <RequestDetailPage />,
-      // không khai báo layout → sẽ dùng layout mặc định
+      path: "*",
+      element: <NotFound />,
+      layout: NoLayout,
     },
   ];
 
@@ -60,11 +41,25 @@ export default function AppRoutes({
     <Routes>
       {routes.map((route, index) => {
         const Layout = route.layout || DefaultLayout;
+
+        let PageComponent = route.element;
+
+        if (route.protected) {
+          PageComponent = <PrivateRoute>{route.element}</PrivateRoute>;
+        }
+
+        if (route.public) {
+          PageComponent = <PublicRoute>{route.element}</PublicRoute>;
+        }
+
+        // ⚠️ Nếu route BOTH không protected và không public → Đây là 404
+        // → Không bọc gì thêm
+
         return (
           <Route
             key={index}
             path={route.path}
-            element={<Layout>{route.element}</Layout>}
+            element={<Layout>{PageComponent}</Layout>}
           />
         );
       })}

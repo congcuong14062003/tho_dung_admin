@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import authApi from "../../service/api/authApi";
 import { toast } from "react-toastify";
 import { requestForToken } from "../../firebase";
+import { connectSocket } from "../../utils/socket";
 
 export default function Login() {
   const { login } = useAuth();
@@ -19,8 +20,14 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const fcm_token = localStorage.getItem("fcm_token");
-      console.log("fcm_token: ", fcm_token);
+      // 🔥 Lấy FCM token mới nhất (không dùng token cũ)
+      const fcm_token = await requestForToken();
+      console.log("FCM token mới: ", fcm_token);
+
+      // Lưu vào localStorage
+      if (fcm_token) {
+        localStorage.setItem("fcm_token", fcm_token);
+      }
 
       // 🔥 Gọi API login
       const res = await authApi.login({
@@ -32,6 +39,7 @@ export default function Login() {
       if (res.status) {
         login(res.data.token);
         navigate("/");
+        connectSocket();    // 🔥 connect lại sau khi có token
       } else {
         toast.error(res.message);
       }
