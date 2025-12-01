@@ -1,94 +1,84 @@
 import React, { useEffect, useState } from "react";
+import { Pagination } from "@mui/material";
+import Select from "react-select";
+import { customSelect, listResultValues } from "../../shared/StyleShare";
 
-const PaginationContainer = ({
-  display = false,
-  totalRecord = 0,
-  setDataFilter,
-  dataFilter,
-}) => {
+const PaginationContainer = ({ display, totalRecord, dataFilter, setDataFilter }) => {
   const [initIdPage, setInitIdPage] = useState(0);
   const [lastIdPage, setLastIdPage] = useState(0);
 
-  const handleChangeResultValue = (e) => {
-    const size = Number(e.target.value);
-    setDataFilter({ ...dataFilter, size, page: 1 });
+  // Đổi số bản ghi mỗi trang
+  const handleChangeResultValue = (data) => {
+    setDataFilter({
+      ...dataFilter,
+      size: data.value,
+      page: 1,
+    });
   };
 
-  const onPageClick = (value) => {
+  // Chuyển trang
+  const onPageClick = (_, value) => {
     setDataFilter({ ...dataFilter, page: value });
     window.scrollTo(0, 0);
   };
 
-  const updateTotalPage = () => {
-    const total = totalRecord;
-    const size = dataFilter.size;
-    const page = dataFilter.page;
-
-    if (total === 0) {
+  // Tính offset hiển thị
+  useEffect(() => {
+    if (totalRecord === 0) {
       setInitIdPage(0);
       setLastIdPage(0);
       return;
     }
 
-    setInitIdPage((page - 1) * size + 1);
-    const last = page * size;
-    setLastIdPage(last > total ? total : last);
-  };
+    const { page, size } = dataFilter;
+    const start = (page - 1) * size + 1;
+    const end = Math.min(page * size, totalRecord);
 
-  useEffect(() => {
-    updateTotalPage();
+    setInitIdPage(start);
+    setLastIdPage(end);
   }, [dataFilter, totalRecord]);
 
   const totalPage = Math.ceil(totalRecord / dataFilter.size);
 
   return (
-    <div
-      className={`mt-4 flex flex-wrap justify-between items-center ${
-        !display && "hidden"
-      }`}
-    >
-      {/* Left text */}
-      <div className="text-gray-700 text-sm">
-        {`Hiển thị từ ${initIdPage} đến ${lastIdPage} trong tổng số ${totalRecord} kết quả`}
+    <div className={`flex justify-between mt-3 ${!display ? "hidden" : ""}`}>
+      {/* Text hiển thị */}
+      <div>
+        {display && (
+          <span>
+            {`Hiển thị từ ${initIdPage} đến ${lastIdPage} trong tổng số ${totalRecord} kết quả`}
+          </span>
+        )}
       </div>
 
-      {/* Page size select */}
-      <div className="flex items-center gap-2">
-        <span className="text-sm">Hiển thị</span>
+      {/* Select size */}
+      <div className="flex items-center">
+        {display && <span className="px-2">Hiển thị</span>}
 
-        <select
-          value={dataFilter.size}
-          onChange={handleChangeResultValue}
-          className="border border-gray-300 rounded-lg px-2 py-1 text-sm bg-white"
-        >
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="20">20</option>
-          <option value="50">50</option>
-          <option value="100">100</option>
-        </select>
+        {display && (
+          <div className="w-[90px]">
+            <Select
+              menuPlacement="top"
+              menuPosition="absolute"
+              options={listResultValues}
+              styles={customSelect}
+              onChange={handleChangeResultValue}
+              value={listResultValues.find((o) => o.value === dataFilter.size)}
+              placeholder={dataFilter.size}
+            />
+          </div>
+        )}
 
-        <span className="text-sm">kết quả</span>
+        {display && <span className="px-2">kết quả</span>}
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center gap-1">
-        {Array.from({ length: totalPage }, (_, i) => i + 1).map((page) => (
-          <button
-            key={page}
-            onClick={() => onPageClick(page)}
-            className={`px-3 py-1 rounded-lg border text-sm transition 
-              ${
-                dataFilter.page === page
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-white border-gray-300 hover:bg-gray-100"
-              }
-            `}
-          >
-            {page}
-          </button>
-        ))}
-      </div>
+      <Pagination
+        className={`${display ? "block" : "hidden"} float-right`}
+        page={dataFilter.page}
+        count={totalPage}
+        onChange={onPageClick}
+      />
     </div>
   );
 };

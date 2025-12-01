@@ -12,7 +12,6 @@ function App() {
     requestForToken().then((token) => {
       if (token) localStorage.setItem("fcm_token", token);
     });
-
     // Lắng nghe thông báo trong khi đang mở web
     onMessageListener().then((payload) => {
       toast.info(
@@ -23,7 +22,12 @@ function App() {
           style={{ cursor: "pointer" }}
         >
           {payload.notification.title}: {payload.notification.body}
-        </div>
+        </div>,
+        {
+          autoClose: 10000, // 10 giây
+          closeOnClick: true,
+          pauseOnHover: true,
+        }
       );
     });
   }, []);
@@ -32,7 +36,7 @@ function App() {
     <LoadingProvider>
       <AppRoutes defaultLayout={DefaultLayout} />
 
-      <ToastContainer position="top-right" autoClose={3000} theme="colored" />
+      <ToastContainer position="top-right" autoClose={false} theme="colored" />
       <Loading />
     </LoadingProvider>
   );

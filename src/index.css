@@ -138,7 +138,7 @@ a {
   border-radius: 10px;
 }
 
-*::-webkit-scrollbar-thumb {
+/* *::-webkit-scrollbar-thumb {
   background: linear-gradient(
     0deg,
     #3c1026 10%,
@@ -148,7 +148,20 @@ a {
     #3c1026 100%
   );
   border-radius: 10px;
+} */
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    0deg,
+    #0a3a75 10%,   /* xanh đậm */
+    #1e80ff 25%,  /* xanh sáng */
+    #1e80ff 50%,  
+    #1e80ff 75%,
+    #0a3a75 100%  /* xanh đậm */
+  );
+  border-radius: 10px;
 }
+
 
 *::-webkit-scrollbar-track {
   -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);

@@ -12,6 +12,7 @@ import Technician from "../pages/Technician";
 import Customer from "../pages/Customer";
 import RequestDetailPage from "../pages/Request/RequestDetailPage";
 import NotFound from "../pages/NotFound/NotFound";
+import PendingDetail from "../pages/Technician/PendingDetail";
 
 export default function AppRoutes({ defaultLayout: DefaultLayout }) {
   const routes = [
@@ -25,6 +26,7 @@ export default function AppRoutes({ defaultLayout: DefaultLayout }) {
     { path: "/categories", element: <Categories />, protected: true },
     { path: "/services", element: <Services />, protected: true },
     { path: "/technicians", element: <Technician />, protected: true },
+    { path: "/technicians/requests/:id", element: <PendingDetail  />, protected: true },
     { path: "/customers", element: <Customer />, protected: true },
     { path: "/requests", element: <Requests />, protected: true },
     { path: "/requests/:id", element: <RequestDetailPage />, protected: true },

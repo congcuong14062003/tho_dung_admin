@@ -24,10 +24,12 @@ import { useLoading } from "../../context/LoadingContext";
 import { toast } from "react-toastify";
 import images from "../../assets/images/Image";
 import { formatDateTimeVN } from "../../utils/formatdate";
+import { useNavigate } from "react-router-dom";
 
 export default function PendingList() {
   const { setLoading } = useLoading();
 
+  const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [totalRecord, setTotalRecord] = useState(0);
   const [searchInput, setSearchInput] = useState("");
@@ -210,15 +212,15 @@ export default function PendingList() {
               <TableCell>SĐT</TableCell>
               <TableCell align="center">Loại yêu cầu</TableCell>
 
-              <TableCell width={120}>Chuyên môn</TableCell>
+              <TableCell width={200}>Chuyên môn</TableCell>
               <TableCell align="center">Năm KN</TableCell>
               <TableCell width={100}> Khu vực</TableCell>
-              <TableCell width={150}>Mô tả</TableCell>
+              {/* <TableCell width={150}>Mô tả</TableCell> */}
               <TableCell align="center">Chứng chỉ</TableCell>
               <TableCell width={150} align="center">
                 Trạng thái
               </TableCell>
-              <TableCell align="center">Ngày nộp</TableCell>
+              {/* <TableCell align="center">Ngày nộp</TableCell> */}
               <TableCell width={200} align="center">
                 Hành động
               </TableCell>
@@ -286,10 +288,10 @@ export default function PendingList() {
                   </TableCell>
 
                   <TableCell>{item.working_area}</TableCell>
-
+{/* 
                   <TableCell className="max-w-[220px]">
                     {item.description || "—"}
-                  </TableCell>
+                  </TableCell> */}
 
                   <TableCell align="center">
                     {item.certifications && item.certifications}
@@ -319,12 +321,12 @@ export default function PendingList() {
                     )}
                   </TableCell>
 
-                  <TableCell align="center">
+                  {/* <TableCell align="center">
                     {formatDateTimeVN(item.created_at)}
-                  </TableCell>
+                  </TableCell> */}
 
-                  <TableCell align="center">
-                    {item.status === "pending" ? (
+                  {/* <TableCell align="center"> */}
+                  {/* {item.status === "pending" ? (
                       <>
                         <Button
                           size="small"
@@ -353,7 +355,21 @@ export default function PendingList() {
                       <span className="text-gray-500 text-xs italic">
                         Đã xử lý
                       </span>
-                    )}
+                    )} */}
+                  {/* </TableCell> */}
+                  <TableCell align="center">
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      sx={{ mr: 1 }}
+                      onClick={() =>
+                        navigate(`/technicians/requests/${item.request_id}`, {
+                          state: item,
+                        })
+                      }
+                    >
+                      Xem chi tiết
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))

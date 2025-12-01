@@ -15,7 +15,7 @@ export default function ImagePreviewModal({ open, image, onClose }) {
           bgcolor: "#000",
           border: "1px solid #ccc",
           width: "auto",
-          height: "auto",
+          height: "90vh",
         }}
       >
         <img

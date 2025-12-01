@@ -22,7 +22,13 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-gray-800 text-white flex flex-col h-screen">
       <div className="p-4 text-2xl font-bold border-b border-gray-700 flex justify-center">
-        <img src={images?.logo} className="w-[80px]" alt="" />
+        <Link to="/" className="flex items-center justify-center">
+          <img
+            src={images?.logo}
+            className="w-[80px] cursor-pointer"
+            alt="logo"
+          />
+        </Link>
       </div>
 
       <nav className="flex-1 p-4 space-y-2">

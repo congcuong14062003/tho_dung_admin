@@ -11,6 +11,11 @@ const technicianApi = {
     return axiosClient.post("/technicians/admin/get-pending-technicians", data);
   },
 
+  // Chi tiết yêu cầu thợ (GET)
+  getRequestDetail: (id) => {
+    return axiosClient.get(`/technicians/admin/get-request-detail/${id}`);
+  },
+
   // Duyệt thợ
   approve: (data) => {
     return axiosClient.post("/technicians/admin/approve", data);
