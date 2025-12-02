@@ -24,7 +24,7 @@ function App() {
           {payload.notification.title}: {payload.notification.body}
         </div>,
         {
-          autoClose: 10000, // 10 giây
+          autoClose: 10000, // 10 giây cho FCM
           closeOnClick: true,
           pauseOnHover: true,
         }
@@ -36,7 +36,12 @@ function App() {
     <LoadingProvider>
       <AppRoutes defaultLayout={DefaultLayout} />
 
-      <ToastContainer position="top-right" autoClose={false} theme="colored" />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000} // 3 giây cho toàn bộ toast mặc định
+        theme="colored"
+      />
+
       <Loading />
     </LoadingProvider>
   );
