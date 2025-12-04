@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 import Cookies from "js-cookie";
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+const SOCKET_URL = `https://tho-dung-server.onrender.com/apis`;
 
 let socket = null;
 
