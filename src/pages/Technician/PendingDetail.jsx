@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLoading } from "../../context/LoadingContext";
 import technicianApi from "../../service/api/technicianApi";
@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import ConfirmModal from "../../components/ConfirmModal/ConfirmModal";
 import RejectConfirmModal from "../../components/ConfirmModal/RejectConfirmModal";
 import { formatDateTimeVN } from "../../utils/formatdate";
+import routes from "../../config/routes";
 
 export default function PendingDetail() {
   const { id } = useParams(); // 👈 Lấy request_id từ URL
@@ -43,8 +44,6 @@ export default function PendingDetail() {
     fetchDetail();
   }, [id]);
 
-  if (!data) return <p className="p-4">Đang tải dữ liệu...</p>;
-
   // ================================
   // 🔥 APPROVE
   // ================================
@@ -56,7 +55,9 @@ export default function PendingDetail() {
       });
 
       res.status ? toast.success("Đã duyệt yêu cầu") : toast.error(res.message);
-      navigate(-1);
+
+      setApproveModal(false);
+      fetchDetail();
     } finally {
       setLoading(false);
     }
@@ -77,7 +78,8 @@ export default function PendingDetail() {
         ? toast.success("Đã từ chối yêu cầu")
         : toast.error(res.message);
 
-      navigate(-1);
+      setRejectModal(false);
+      fetchDetail();
     } finally {
       setLoading(false);
     }
@@ -212,7 +214,7 @@ export default function PendingDetail() {
 
           <button
             className="px-4 py-2 bg-gray-300 rounded-lg"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate(routes.technicians)}
           >
             Quay lại
           </button>

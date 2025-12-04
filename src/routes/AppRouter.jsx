@@ -13,27 +13,34 @@ import Customer from "../pages/Customer";
 import RequestDetailPage from "../pages/Request/RequestDetailPage";
 import NotFound from "../pages/NotFound/NotFound";
 import PendingDetail from "../pages/Technician/PendingDetail";
+import routes from "../config/routes";
 
 export default function AppRoutes({ defaultLayout: DefaultLayout }) {
-  const routes = [
+  const routesConfig = [
     {
-      path: "/login",
+      path: routes.login,
       element: <Login />,
       layout: NoLayout,
       public: true,
     },
-    { path: "/", element: <Dashboard />, protected: true },
-    { path: "/categories", element: <Categories />, protected: true },
-    { path: "/services", element: <Services />, protected: true },
-    { path: "/technicians", element: <Technician />, protected: true },
-    { path: "/technicians/requests/:id", element: <PendingDetail  />, protected: true },
-    { path: "/customers", element: <Customer />, protected: true },
-    { path: "/requests", element: <Requests />, protected: true },
-    { path: "/requests/:id", element: <RequestDetailPage />, protected: true },
-
-    // ⭐ 404 — không public, không protected
+    { path: routes.dashboard, element: <Dashboard />, protected: true },
+    { path: routes.categories, element: <Categories />, protected: true },
+    { path: routes.services, element: <Services />, protected: true },
+    { path: routes.technicians, element: <Technician />, protected: true },
     {
-      path: "*",
+      path: routes.technicianRequestDetail(),
+      element: <PendingDetail />,
+      protected: true,
+    },
+    { path: routes.customers, element: <Customer />, protected: true },
+    { path: routes.requests, element: <Requests />, protected: true },
+    {
+      path: routes.requestDetail(),
+      element: <RequestDetailPage />,
+      protected: true,
+    },
+    {
+      path: routes.notFound,
       element: <NotFound />,
       layout: NoLayout,
     },
@@ -41,7 +48,7 @@ export default function AppRoutes({ defaultLayout: DefaultLayout }) {
 
   return (
     <Routes>
-      {routes.map((route, index) => {
+      {routesConfig.map((route, index) => {
         const Layout = route.layout || DefaultLayout;
 
         let PageComponent = route.element;

@@ -11,7 +11,9 @@ import { removeFcmToken } from "../../firebase";
 
 export default function Header() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, userInfo } = useAuth();
+  const adminId = userInfo?.userId;
+  console.log("adminId: ", adminId);
 
   const [notifications, setNotifications] = useState([]);
   const [openDropdown, setOpenDropdown] = useState(false);
@@ -43,20 +45,32 @@ export default function Header() {
   };
 
   useEffect(() => {
-    const socket = connectSocket(); // 🔥 đảm bảo socket luôn sẵn sàng
-
+    const socket = connectSocket();
     if (!socket) return;
 
     loadNotifications();
 
-    // JOIN SOCKET ROOM
-    socket.emit("join_admin");
+    socket.on("new_notification", (list) => {
+      console.log("list: ", list);
 
-    socket.on("new_notification", () => {
-      loadNotifications();
+      setNotifications((prev) => {
+        const newItems = [];
+
+        list.forEach((item) => {
+          console.log("vào: ", item.user_id, adminId);
+          if (item.user_id == adminId) {
+            newItems.push({
+              ...item,
+              action_data: { url: item?.data?.url }, // ép thành đúng cấu trúc
+            });
+          }
+        });
+
+        if (newItems.length === 0) return prev;
+        return [...newItems, ...prev];
+      });
     });
 
-    // FCM realtime
     function fcmListener() {
       loadNotifications();
     }
@@ -66,14 +80,12 @@ export default function Header() {
       socket.off("new_notification");
       window.removeEventListener("fcm_notification", fcmListener);
     };
-  }, []);
+  }, [adminId]); // 👈 Thêm vào đây
 
   // ============================
   // Đánh dấu đã đọc
   // ============================
   const handleMarkAsRead = async (id, url) => {
-    console.log("vào nè: ", url);
-
     try {
       await notificationApi.markAsRead(id);
       navigate(url);
