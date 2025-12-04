@@ -2,7 +2,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,  
+  baseURL: `${import.meta.env.VITE_API_URL}/apis`,  
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
