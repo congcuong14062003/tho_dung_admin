@@ -8,6 +8,7 @@ import { Bell } from "lucide-react";
 import notificationApi from "../../service/api/notificationApi";
 import { connectSocket } from "../../utils/socket";
 import { removeFcmToken } from "../../firebase";
+import { getNotificationIcon } from "../../components/notificationIcon";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -199,10 +200,10 @@ export default function Header() {
                   >
                     {/* Avatar / Icon */}
                     <div
-                      className="w-10 h-10 bg-blue-100 text-blue-600 
-                    flex items-center justify-center rounded-full font-bold"
+                      className="w-10 h-10 bg-gray-100 
+                      flex items-center justify-center rounded-full"
                     >
-                      <Bell size={18} />
+                      {getNotificationIcon(item.type)}
                     </div>
 
                     {/* Content */}
