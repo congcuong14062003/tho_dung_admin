@@ -24,6 +24,7 @@ import {
 import paymentApi from "../../service/api/paymentApi";
 import { ShieldAlert } from "lucide-react";
 import ImagePreviewModal from "../../components/ImageModal/ImagePreviewModal";
+import { toast } from "react-toastify";
 
 const pageStyle = {
   width: "100%",
@@ -153,11 +154,17 @@ export default function RequestDetailPage() {
     setLoading(true);
     try {
       const payload = {
-        payment_id: paymentDetail?.id,
+        payment_id: paymentDetail?.payment_id,
         action: "approve",
       };
       const res = await paymentApi.verifyPayment(payload);
-      if (res.status) setPaymentDetail(res.data);
+      if (res.status) {
+        toast.success(res?.messagee);
+      } else {
+        toast.error(res?.messagee);
+      }
+      fetchDetail();
+      fetchPaymentDetail();
     } catch (err) {
       console.log("Lỗi duyệt payment:", err);
     } finally {
@@ -270,7 +277,9 @@ export default function RequestDetailPage() {
               sx={{ width: 56, height: 56, mr: 2 }}
             />
             <Box>
-              <Typography fontWeight={500}>{request.technician?.name}</Typography>
+              <Typography fontWeight={500}>
+                {request.technician?.name}
+              </Typography>
               <Typography variant="body2" color="text.secondary">
                 {request.technician?.phone}
               </Typography>
@@ -367,13 +376,15 @@ export default function RequestDetailPage() {
               {request.quotations.data.map((qtn) => (
                 <TableRow key={qtn.id}>
                   <TableCell>{qtn.name}</TableCell>
+                  <TableCell>{qtn.price.toLocaleString("vi-VN")}₫</TableCell>
                   <TableCell>
-                    {qtn.price.toLocaleString("vi-VN")}₫
-                  </TableCell>
-                  <TableCell>
-                    {qtn.status === "in_progress"
-                      ? "Đang tiến hành"
-                      : "Hoàn thành"}
+                    {
+                      {
+                        pending: "Chờ khách xác nhận",
+                        in_progress: "Đang tiến hành",
+                        completed: "Hoàn thành",
+                      }[qtn.status]
+                    }
                   </TableCell>
                   <TableCell>{qtn.note}</TableCell>
                   <TableCell>{qtn.reason}</TableCell>
@@ -530,7 +541,7 @@ export default function RequestDetailPage() {
               </Typography>
             )}
 
-            {paymentDetail.payment_status === "customer_review" && (
+            {request.status === "payment_review" && (
               <Button
                 variant="contained"
                 color="success"

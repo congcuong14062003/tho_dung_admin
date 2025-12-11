@@ -16,6 +16,9 @@ import {
 
 export const getNotificationIcon = (type) => {
   switch (type) {
+    case "request_cancel":
+      return <XCircle size={18} className="text-red-600" />;
+
     case "request_technician_approved":
       return <UserCheck size={18} className="text-green-600" />;
 
@@ -54,6 +57,12 @@ export const getNotificationIcon = (type) => {
 
     case "payment_approved":
       return <CheckCircle size={18} className="text-green-700" />;
+
+    case "technician_accept_assign":
+      return <UserCheck size={18} className="text-green-600" />;
+
+    case "technician_reject_assign":
+      return <UserX size={18} className="text-red-600" />;
 
     default:
       return <Bell size={18} className="text-blue-600" />;

@@ -89,7 +89,7 @@ export default function Header() {
   const handleMarkAsRead = async (id, url) => {
     try {
       await notificationApi.markAsRead(id);
-      navigate(url);
+      window.location.href = url;
       loadNotifications();
     } catch (err) {
       console.error("Lỗi mark read:", err);
@@ -101,7 +101,6 @@ export default function Header() {
   const handleLogout = async () => {
     try {
       const fcm_token = localStorage.getItem("fcm_token");
-
       // Gọi API xoá token này khỏi database
       await authApi.logout({ fcm_token });
 
