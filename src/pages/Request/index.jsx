@@ -53,8 +53,8 @@ function Requests() {
       const res = await requestApi.getAll(filter);
 
       if (res?.status && res.data?.data) {
-        setRequests(res.data.data);
-        setTotalRecord(res.data.totalRecord || 0);
+        setRequests(res?.data?.data);
+        setTotalRecord(res?.data?.paging?.total || 0);
       } else {
         toast.error(res?.message);
       }

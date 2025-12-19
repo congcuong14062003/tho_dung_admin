@@ -58,7 +58,7 @@ export default function Customer() {
       const res = await customerApi.getAll(request);
 
       setCustomers(res?.data?.data || []);
-      setTotalRecord(res?.data?.totalRecord || 0);
+      setTotalRecord(res?.data?.paging?.total || 0);
     } catch (err) {
       console.error("Lỗi lấy khách hàng:", err);
     } finally {

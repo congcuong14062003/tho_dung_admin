@@ -55,7 +55,7 @@ export default function TechnicianList() {
       const res = await technicianApi.getAll(request);
 
       setTechnicians(res?.data?.data || []);
-      setTotalRecord(res?.data?.totalRecord || 0);
+      setTotalRecord(res?.data?.paging?.total || 0);
     } catch (err) {
       console.error("Lỗi lấy danh sách thợ:", err);
     } finally {
