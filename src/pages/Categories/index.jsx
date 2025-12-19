@@ -50,8 +50,8 @@ function Categories() {
     try {
       const res = await categoryApi.getList(request);
       if (res.status && res?.data?.data) {
-        setCategories(res.data.data);
-        setTotalRecord(res.data.totalRecord || 0);
+        setCategories(res?.data?.data);
+        setTotalRecord(res?.data?.paging?.total || 0);
       }
     } catch (err) {
       console.error("Lỗi lấy danh mục:", err);
@@ -178,10 +178,10 @@ function Categories() {
           <TableBody>
             {categories.length > 0 ? (
               categories.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{item.id}</TableCell>
-                  <TableCell>{item.name}</TableCell>
-                  <TableCell>{item.description}</TableCell>
+                <TableRow key={item?.id}>
+                  <TableCell>{item?.id}</TableCell>
+                  <TableCell>{item?.name}</TableCell>
+                  <TableCell>{item?.description}</TableCell>
 
                   <TableCell align="center">
                     <div

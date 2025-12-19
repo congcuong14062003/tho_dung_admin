@@ -41,7 +41,7 @@ export default function ServiceForm({ open, onClose, service }) {
     if (open) {
       categoryApi.getList({ page: 1, size: 50, keySearch: "" }).then((res) => {
         if (res.status && res?.data?.data) {
-          setCategories(res.data.data);
+          setCategories(res?.data?.data);
         }
       });
     }

@@ -46,7 +46,7 @@ function Services() {
 
   const fetchCategories = async () => {
     const res = await categoryApi.getList({ page: 1, size: 50, keySearch: "" });
-    if (res.status && res?.data?.data) setCategories(res.data.data);
+    if (res.status && res?.data?.data) setCategories(res?.data?.data);
   };
 
   const fetchServices = async () => {
@@ -54,8 +54,8 @@ function Services() {
     try {
       const res = await serviceApi.getList(request); // Gửi đúng params phân trang
       if (res.status && res?.data) {
-        setServices(res.data.services || []);
-        setTotalRecord(res.data.totalRecord || 0);
+        setServices(res?.data?.data || []);
+        setTotalRecord(res?.data?.paging?.total || 0);
       } else {
         toast.error(res?.message || "Lỗi khi lấy dịch vụ");
       }

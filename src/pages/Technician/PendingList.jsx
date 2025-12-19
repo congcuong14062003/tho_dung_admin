@@ -63,7 +63,7 @@ export default function PendingList() {
 
       if (res.status) {
         setData(res.data?.data || []);
-        setTotalRecord(res.data?.totalRecord || 0);
+        setTotalRecord(res?.data?.paging?.total || 0);
       } else {
         toast.error(res.message || "Không thể tải danh sách");
       }
@@ -288,7 +288,7 @@ export default function PendingList() {
                   </TableCell>
 
                   <TableCell>{item.working_area}</TableCell>
-{/* 
+                  {/* 
                   <TableCell className="max-w-[220px]">
                     {item.description || "—"}
                   </TableCell> */}
