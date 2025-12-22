@@ -25,6 +25,8 @@ import paymentApi from "../../service/api/paymentApi";
 import { ShieldAlert } from "lucide-react";
 import ImagePreviewModal from "../../components/ImageModal/ImagePreviewModal";
 import { toast } from "react-toastify";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import MessageModal from "./MessageModal";
 
 const pageStyle = {
   width: "100%",
@@ -109,6 +111,7 @@ const renderStatusPayment = (stt) => {
 export default function RequestDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [openMessage, setOpenMessage] = useState(false);
 
   const [request, setRequest] = useState(null);
   const [paymentDetail, setPaymentDetail] = useState(null);
@@ -188,9 +191,24 @@ export default function RequestDetailPage() {
   return (
     <Box sx={pageStyle}>
       {/* Title */}
-      <Typography variant="h6" textAlign="center" fontWeight={600} mb={2}>
-        Chi tiết yêu cầu dịch vụ
-      </Typography>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
+      >
+        <Typography variant="h6" fontWeight={600}>
+          Chi tiết yêu cầu dịch vụ
+        </Typography>
+
+        <Button
+          variant="outlined"
+          startIcon={<ChatBubbleOutlineIcon />}
+          onClick={() => setOpenMessage(true)}
+        >
+          Tin nhắn
+        </Button>
+      </Box>
 
       <Divider sx={{ mb: 2 }} />
 
@@ -585,6 +603,12 @@ export default function RequestDetailPage() {
         open={!!previewImage}
         image={previewImage}
         onClose={() => setPreviewImage(null)}
+      />
+
+      <MessageModal
+        open={openMessage}
+        onClose={() => setOpenMessage(false)}
+        requestId={id}
       />
     </Box>
   );
