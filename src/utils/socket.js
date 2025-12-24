@@ -13,7 +13,7 @@ export const connectSocket = () => {
   }
 
   if (socket && socket.connected) {
-    console.log("⚠ Socket already connected:", socket.id);
+    // console.log("⚠ Socket already connected:", socket.id);
     return socket;
   }
 
