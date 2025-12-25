@@ -4,7 +4,10 @@ import { toast } from "react-toastify";
 
 const RejectConfirmModal = ({
   isOpen,
-  fullName = "",
+  title = "Từ chối yêu cầu",
+  message, // ReactNode (có thể truyền JSX để format tùy ý, ví dụ highlight từ chối, tên yêu cầu...)
+  placeholder = "Ví dụ: Hồ sơ chưa đủ chứng chỉ, kinh nghiệm chưa phù hợp, thông tin không chính xác...",
+  confirmButtonText = "Xác nhận từ chối",
   onConfirm,   // hàm nhận lý do: (reason) => {...}
   onCancel,
   loading = false,
@@ -19,6 +22,7 @@ const RejectConfirmModal = ({
       return;
     }
     onConfirm(reason.trim());
+    setReason(""); // reset sau khi confirm thành công (caller sẽ đóng modal)
   };
 
   const handleCancel = () => {
@@ -30,7 +34,7 @@ const RejectConfirmModal = ({
     <>
       {/* Overlay */}
       <div
-        className="fixed inset-0  bg-opacity-50 z-40"
+        className="fixed inset-0 bg-opacity-50 z-40"
         onClick={handleCancel}
       />
 
@@ -48,16 +52,18 @@ const RejectConfirmModal = ({
               </svg>
             </div>
             <h3 className="text-xl font-bold text-gray-900">
-              Từ chối yêu cầu làm thợ
+              {title}
             </h3>
           </div>
 
-          {/* Nội dung */}
-          <p className="text-gray-700 mb-4 leading-relaxed">
-            Bạn có chắc muốn <span className="font-semibold text-red-600">từ chối</span> yêu cầu làm thợ của
-            <span className="font-bold"> "{fullName}"</span> không?
-          </p>
+          {/* Nội dung message (linh hoạt - caller truyền JSX) */}
+          {message && (
+            <div className="text-gray-700 mb-6 leading-relaxed">
+              {message}
+            </div>
+          )}
 
+          {/* Lý do từ chối */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Lý do từ chối <span className="text-red-500">*</span>
@@ -66,9 +72,10 @@ const RejectConfirmModal = ({
               rows={5}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Ví dụ: Hồ sơ chưa đủ chứng chỉ, kinh nghiệm chưa phù hợp, thông tin không chính xác..."
+              placeholder={placeholder}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all resize-none"
               autoFocus
+              disabled={loading}
             />
           </div>
 
@@ -92,7 +99,7 @@ const RejectConfirmModal = ({
                   <path fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                 </svg>
               )}
-              Từ chối yêu cầu
+              {confirmButtonText}
             </button>
           </div>
         </div>

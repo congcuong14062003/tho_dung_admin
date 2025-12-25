@@ -28,6 +28,10 @@ import { toast } from "react-toastify";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import MessageModal from "./MessageModal";
 
+// ⭐ Import modal xác nhận giống trang mẫu
+import ConfirmModal from "../../components/ConfirmModal/ConfirmModal";
+import RejectConfirmModal from "../../components/ConfirmModal/RejectConfirmModal";
+
 const pageStyle = {
   width: "100%",
   maxWidth: "900px",
@@ -119,6 +123,10 @@ export default function RequestDetailPage() {
   const [openAssign, setOpenAssign] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
 
+  // ⭐ State cho modal duyệt / từ chối báo giá (giống trang mẫu)
+  const [approveQuoteModal, setApproveQuoteModal] = useState(false);
+  const [rejectQuoteModal, setRejectQuoteModal] = useState(false);
+
   const formatDate = (dateStr) =>
     dateStr ? new Date(dateStr).toLocaleString("vi-VN") : "—";
 
@@ -162,16 +170,63 @@ export default function RequestDetailPage() {
       };
       const res = await paymentApi.verifyPayment(payload);
       if (res.status) {
-        toast.success(res?.messagee);
+        toast.success(res?.messagee || "Duyệt thanh toán thành công");
       } else {
-        toast.error(res?.messagee);
+        toast.error(res?.messagee || "Duyệt thanh toán thất bại");
       }
       fetchDetail();
       fetchPaymentDetail();
     } catch (err) {
-      console.log("Lỗi duyệt payment:", err);
+      toast.error("Lỗi duyệt payment");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ⭐ Hàm duyệt báo giá (gọi khi confirm modal)
+  const handleApproveQuote = async () => {
+    setLoading(true);
+    try {
+      // Thay bằng API thực tế của anh
+      const res = await requestApi.approveQuote({
+        request_id: id,
+        quotation_id: request.quotations.quotation_id,
+      });
+      if (res.status) {
+        toast.success(res?.message || "Duyệt báo giá thành công");
+      } else {
+        toast.error(res?.message || "Duyệt báo giá thất bại");
+      }
+      fetchDetail();
+    } catch (err) {
+      toast.error("Lỗi duyệt báo giá");
+    } finally {
+      setLoading(false);
+      setApproveQuoteModal(false);
+    }
+  };
+
+  // ⭐ Hàm từ chối báo giá (nhận reason từ RejectConfirmModal)
+  const handleRejectQuote = async (reason) => {
+    setLoading(true);
+    try {
+      // Thay bằng API thực tế của anh
+      const res = await requestApi.rejectQuote({
+        request_id: id,
+        quotation_id: request.quotations.quotation_id,
+        reason,
+      });
+      if (res.status) {
+        toast.success(res?.message || "Từ chối báo giá thành công");
+      } else {
+        toast.error(res?.message || "Từ chối báo giá thất bại");
+      }
+      fetchDetail();
+    } catch (err) {
+      toast.error("Lỗi từ chối báo giá");
+    } finally {
+      setLoading(false);
+      setRejectQuoteModal(false);
     }
   };
 
@@ -187,6 +242,17 @@ export default function RequestDetailPage() {
   const bgColor = category?.color
     ? hexToRgba(category.color, 0.2)
     : "transparent";
+
+  const isQuotePending = request.status === "quote_pending";
+  const quoteStatusLabel =
+    request.quotations?.quotation_status === "replaced"
+      ? "Yêu cầu báo giá lại"
+      : "Chờ admin duyệt báo giá";
+
+  const quoteStatusColor =
+    request.quotations?.quotation_status === "replaced"
+      ? "warning.main"
+      : "success.main";
 
   return (
     <Box sx={pageStyle}>
@@ -384,9 +450,14 @@ export default function RequestDetailPage() {
               <TableRow>
                 <TableCell>Hạng mục</TableCell>
                 <TableCell>Đơn giá</TableCell>
-                <TableCell>Trạng thái</TableCell>
-                <TableCell>Ghi chú</TableCell>
-                <TableCell>Phản hồi khách</TableCell>
+
+                {!isQuotePending && (
+                  <>
+                    <TableCell>Trạng thái</TableCell>
+                    <TableCell>Ghi chú</TableCell>
+                    <TableCell>Phản hồi khách</TableCell>
+                  </>
+                )}
               </TableRow>
             </TableHead>
 
@@ -395,17 +466,22 @@ export default function RequestDetailPage() {
                 <TableRow key={qtn.id}>
                   <TableCell>{qtn.name}</TableCell>
                   <TableCell>{qtn.price.toLocaleString("vi-VN")}₫</TableCell>
-                  <TableCell>
-                    {
-                      {
-                        pending: "Chờ khách xác nhận",
-                        in_progress: "Đang tiến hành",
-                        completed: "Hoàn thành",
-                      }[qtn.status]
-                    }
-                  </TableCell>
-                  <TableCell>{qtn.note}</TableCell>
-                  <TableCell>{qtn.reason}</TableCell>
+
+                  {!isQuotePending && (
+                    <>
+                      <TableCell>
+                        {
+                          {
+                            pending: "Chờ khách xác nhận",
+                            in_progress: "Đang tiến hành",
+                            completed: "Hoàn thành",
+                          }[qtn.status]
+                        }
+                      </TableCell>
+                      <TableCell>{qtn.note}</TableCell>
+                      <TableCell>{qtn.reason}</TableCell>
+                    </>
+                  )}
                 </TableRow>
               ))}
 
@@ -420,6 +496,82 @@ export default function RequestDetailPage() {
               </TableRow>
             </TableBody>
           </Table>
+          {request.quotations?.quotation_status === "replaced" && (
+            <>
+              <Box
+                mt={2}
+                display="flex"
+                justifyContent="flex-start"
+                alignItems="center"
+              >
+                Trạng thái báo giá:{" "}
+                <Typography
+                  sx={{
+                    px: 2,
+                    py: 0.5,
+                    ml: 1,
+                    borderRadius: "16px",
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: quoteStatusColor,
+                    border: "1px solid",
+                    borderColor: quoteStatusColor,
+                    backgroundColor:
+                      request.quotations?.quotation_status === "replaced"
+                        ? "warning.light"
+                        : "success.light",
+                  }}
+                >
+                  {quoteStatusLabel}
+                </Typography>
+              </Box>
+              <Box
+                mt={2}
+                display="flex"
+                justifyContent="flex-start"
+                alignItems="center"
+              >
+                Lý do:{" "}
+                <Typography
+                  sx={{
+                    py: 0.5,
+                    ml: 1,
+                  }}
+                >
+                  {request.quotations?.reject_reason || "—"}
+                </Typography>
+              </Box>
+            </>
+          )}
+
+          {/* ⭐ Nút duyệt / từ chối – style giống trang mẫu, chỉ hiện khi quote_pending */}
+          {request.status === "quote_pending" &&
+            request.quotations?.quotation_status === "active" && (
+              <Box
+                sx={{
+                  mt: 4,
+                  display: "flex",
+                  gap: 2,
+                  justifyContent: "flex-end",
+                }}
+              >
+                <button
+                  className="px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50"
+                  onClick={() => setRejectQuoteModal(true)}
+                  disabled={loading}
+                >
+                  Từ chối
+                </button>
+
+                <button
+                  className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50"
+                  onClick={() => setApproveQuoteModal(true)}
+                  disabled={loading}
+                >
+                  Duyệt
+                </button>
+              </Box>
+            )}
         </>
       )}
 
@@ -609,6 +761,34 @@ export default function RequestDetailPage() {
         open={openMessage}
         onClose={() => setOpenMessage(false)}
         requestId={id}
+      />
+
+      {/* ⭐ Modal xác nhận duyệt báo giá */}
+      <ConfirmModal
+        isOpen={approveQuoteModal}
+        title="Xác nhận duyệt báo giá"
+        message={`Bạn có chắc muốn duyệt báo giá cho yêu cầu này?`}
+        confirmText="Duyệt ngay"
+        onConfirm={handleApproveQuote}
+        onCancel={() => setApproveQuoteModal(false)}
+      />
+
+      {/* ⭐ Modal từ chối báo giá (có nhập lý do) */}
+      <RejectConfirmModal
+        isOpen={rejectQuoteModal}
+        title="Từ chối báo giá"
+        message={
+          <>
+            Bạn có chắc muốn{" "}
+            <span className="font-semibold text-red-600">từ chối</span> báo giá
+            cho yêu cầu
+            <span className="font-bold"> "{request?.name_request}"</span> không?
+          </>
+        }
+        placeholder="Ví dụ: Báo giá không hợp lý, thiếu hạng mục, giá quá cao..."
+        confirmButtonText="Từ chối báo giá"
+        onConfirm={handleRejectQuote}
+        onCancel={() => setRejectQuoteModal(false)}
       />
     </Box>
   );
