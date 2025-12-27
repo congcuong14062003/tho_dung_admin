@@ -9,7 +9,6 @@ import notificationApi from "../../service/api/notificationApi";
 import { connectSocket } from "../../utils/socket";
 import { removeFcmToken } from "../../firebase";
 import { getNotificationIcon } from "../../components/notificationIcon";
-import { toast } from "react-toastify";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -58,7 +57,7 @@ export default function Header() {
       setNotifications((prev) => {
         const newItems = [];
 
-        list?.forEach((item) => {
+        list.forEach((item) => {
           console.log("vào: ", item.user_id, adminId);
           if (item.user_id == adminId) {
             newItems.push({
@@ -72,25 +71,6 @@ export default function Header() {
         return [...newItems, ...prev];
       });
     });
-    socket.on("new_message", (data) => {
-      console.log("data: ", data);
-      if (data?.action_data?.sender_id === adminId) {
-        return;
-      } else {
-        toast.info(
-          `Tin nhắn mới từ ${data?.action_data?.request_id}: ${data.message}`,
-          {
-            position: "top-right",
-            autoClose: 5000,
-            closeOnClick: true,
-            pauseOnHover: true,
-            onClick: () => {
-              navigate(`/requests/${data?.action_data?.request_id}`);
-            },
-          }
-        );
-      }
-    });
 
     function fcmListener() {
       loadNotifications();
@@ -99,7 +79,6 @@ export default function Header() {
 
     return () => {
       socket.off("new_notification");
-      socket.off("new_message");
       window.removeEventListener("fcm_notification", fcmListener);
     };
   }, [adminId]); // 👈 Thêm vào đây
