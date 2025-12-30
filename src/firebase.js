@@ -1,6 +1,11 @@
 // src/firebase.js
 import { initializeApp } from "firebase/app";
-import { deleteToken, getMessaging, getToken, onMessage } from "firebase/messaging";
+import {
+  deleteToken,
+  getMessaging,
+  getToken,
+  onMessage,
+} from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCx-pQi4IO5dgI5PK9zX1Nz5uOHsAkr_Xs",
@@ -12,7 +17,10 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const messaging = getMessaging(app);
+const isSecure =
+  location.protocol === "https:" || location.hostname === "localhost";
+
+export const messaging = isSecure ? getMessaging(app) : null;
 
 export const requestForToken = async () => {
   try {
@@ -22,7 +30,8 @@ export const requestForToken = async () => {
     const swReg = await navigator.serviceWorker.ready;
 
     const token = await getToken(messaging, {
-      vapidKey: "BGNVPCwCjDMXOSdB7vmTPBJwSSwt4O_wrPNG15-TV6HyfgnOI_o9xac6eipku56lHUB7MVKkQFAX0wG1HiXzEgs",
+      vapidKey:
+        "BGNVPCwCjDMXOSdB7vmTPBJwSSwt4O_wrPNG15-TV6HyfgnOI_o9xac6eipku56lHUB7MVKkQFAX0wG1HiXzEgs",
       serviceWorkerRegistration: swReg,
     });
 
@@ -44,7 +53,7 @@ export const removeFcmToken = async () => {
     const currentToken = localStorage.getItem("fcm_token");
     if (!currentToken) return;
 
-    await deleteToken(messaging);   // 🔥 XÓA TOKEN TRONG FIREBASE
+    await deleteToken(messaging); // 🔥 XÓA TOKEN TRONG FIREBASE
     localStorage.removeItem("fcm_token");
 
     console.log("🗑️ Đã xóa FCM token trên client:", currentToken);

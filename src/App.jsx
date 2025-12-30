@@ -5,10 +5,8 @@ import { LoadingProvider } from "./context/LoadingContext";
 import Loading from "./components/Loading/Loading";
 import { ToastContainer, toast } from "react-toastify";
 import { requestForToken, onMessageListener } from "./firebase";
-import { useAuth } from "./context/AuthContext";
 
 function App() {
-  const { userInfo } = useAuth();
   useEffect(() => {
     // Lấy FCM token
     requestForToken().then((token) => {
@@ -16,31 +14,23 @@ function App() {
     });
     // Lắng nghe thông báo trong khi đang mở web
     onMessageListener().then((payload) => {
-      console.log("payload: ", payload);
-      console.log(payload?.data?.sender_id);
-      console.log(userInfo);
-
-      if (payload?.data?.sender_id === userInfo?.userId) {
-        return;
-      } else {
-        toast.info(
-          <div
-            onClick={() => {
-              if (payload?.data?.url) window.location.href = payload.data.url;
-            }}
-            style={{ cursor: "pointer" }}
-          >
-            {payload.notification.title}: {payload.notification.body}
-          </div>,
-          {
-            autoClose: 10000, // 10 giây cho FCM
-            closeOnClick: true,
-            pauseOnHover: true,
-          }
-        );
-      }
+      toast.info(
+        <div
+          onClick={() => {
+            if (payload?.data?.url) window.location.href = payload.data.url;
+          }}
+          style={{ cursor: "pointer" }}
+        >
+          {payload.notification.title}: {payload.notification.body}
+        </div>,
+        {
+          autoClose: 10000, // 10 giây cho FCM
+          closeOnClick: true,
+          pauseOnHover: true,
+        }
+      );
     });
-  }, [userInfo]);
+  }, []);
 
   return (
     <LoadingProvider>
