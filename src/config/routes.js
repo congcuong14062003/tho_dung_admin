@@ -16,6 +16,8 @@ const routes = {
 
   // Customers
   customers: "/customers",
+  changePassword: "/change-password",
+  notifications: "/notifications",
 
   // Requests
   requests: "/requests",

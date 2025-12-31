@@ -1,5 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Folder, Wrench, FileText, Users, User } from "lucide-react";
+import {
+  Home,
+  Folder,
+  Wrench,
+  FileText,
+  Users,
+  User,
+  Bell,
+} from "lucide-react";
 import images from "../../assets/images/Image";
 
 export default function Sidebar() {
@@ -17,6 +25,7 @@ export default function Sidebar() {
     { path: "/customers", label: "Khách", icon: <User size={18} /> },
     { path: "/technicians", label: "Thợ", icon: <Users size={18} /> },
     { path: "/requests", label: "Yêu cầu", icon: <FileText size={18} /> },
+    { path: "/notifications", label: "Thông báo", icon: <Bell size={18} /> },
   ];
 
   return (
