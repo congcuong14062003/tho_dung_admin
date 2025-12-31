@@ -53,6 +53,7 @@ export const AuthProvider = ({ children }) => {
           phone: payload.phone,
           role: payload.role,
           username: payload.username,
+          avatar: payload.avatar, // 🔥 thêm
         });
       }
     }

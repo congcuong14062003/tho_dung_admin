@@ -6,7 +6,8 @@ const authApi = {
   },
   logout: (data) => {
     return axiosClient.post("/auth/logout", data);
-  }
+  },
+
 };
 
 export default authApi;

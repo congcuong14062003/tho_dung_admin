@@ -14,6 +14,8 @@ import RequestDetailPage from "../pages/Request/RequestDetailPage";
 import NotFound from "../pages/NotFound/NotFound";
 import PendingDetail from "../pages/Technician/PendingDetail";
 import routes from "../config/routes";
+import ChangePassword from "../pages/ChangePass/ChangePassword";
+import Notifications from "../pages/Notification";
 
 export default function AppRoutes({ defaultLayout: DefaultLayout }) {
   const routesConfig = [
@@ -27,6 +29,8 @@ export default function AppRoutes({ defaultLayout: DefaultLayout }) {
     { path: routes.categories, element: <Categories />, protected: true },
     { path: routes.services, element: <Services />, protected: true },
     { path: routes.technicians, element: <Technician />, protected: true },
+    { path: routes.changePassword, element: <ChangePassword />, protected: true },
+    { path: routes.notifications, element: <Notifications />, protected: true },
     {
       path: routes.technicianRequestDetail(),
       element: <PendingDetail />,
