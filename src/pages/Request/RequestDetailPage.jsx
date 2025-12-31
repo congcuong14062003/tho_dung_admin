@@ -31,6 +31,8 @@ import MessageModal from "./MessageModal";
 // ⭐ Import modal xác nhận giống trang mẫu
 import ConfirmModal from "../../components/ConfirmModal/ConfirmModal";
 import RejectConfirmModal from "../../components/ConfirmModal/RejectConfirmModal";
+import ReviewModal from "./ReviewModal";
+import RateReviewIcon from "@mui/icons-material/RateReview";
 
 const pageStyle = {
   width: "100%",
@@ -122,7 +124,7 @@ export default function RequestDetailPage() {
   const [loading, setLoading] = useState(false);
   const [openAssign, setOpenAssign] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
-
+  const [openReview, setOpenReview] = useState(false);
   // ⭐ State cho modal duyệt / từ chối báo giá (giống trang mẫu)
   const [approveQuoteModal, setApproveQuoteModal] = useState(false);
   const [rejectQuoteModal, setRejectQuoteModal] = useState(false);
@@ -737,6 +739,16 @@ export default function RequestDetailPage() {
             Gán thợ
           </Button>
         )}
+
+        {request.status === "completed" && (
+          <Button
+            variant="outlined"
+            startIcon={<RateReviewIcon />}
+            onClick={() => setOpenReview(true)}
+          >
+            Xem đánh giá
+          </Button>
+        )}
       </Box>
 
       {/* Assign worker modal */}
@@ -789,6 +801,12 @@ export default function RequestDetailPage() {
         confirmButtonText="Từ chối báo giá"
         onConfirm={handleRejectQuote}
         onCancel={() => setRejectQuoteModal(false)}
+      />
+      <ReviewModal
+        request={request}
+        open={openReview}
+        onClose={() => setOpenReview(false)}
+        requestId={id}
       />
     </Box>
   );
