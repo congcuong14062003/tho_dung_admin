@@ -25,6 +25,7 @@ import {
 import PaginationContainer from "../../components/PaginationContainer";
 import images from "../../assets/images/Image";
 import { useNavigate } from "react-router-dom";
+import { formatDateToDDMMYYYY } from "../../utils/formatdate";
 
 function Requests() {
   const navigate = useNavigate();
@@ -42,6 +43,14 @@ function Requests() {
     size: 5,
     keySearch: "",
     status: "all",
+
+    // gửi backend
+    dateFrom: null, // dd/mm/yyyy
+    dateTo: null,
+
+    // chỉ để hiển thị input
+    dateFromRaw: "",
+    dateToRaw: "",
   });
 
   const [searchInput, setSearchInput] = useState("");
@@ -102,6 +111,8 @@ function Requests() {
       size: 5,
       keySearch: "",
       status: "all",
+      dateFrom: null,
+      dateTo: null,
     });
   };
 
@@ -174,6 +185,43 @@ function Requests() {
             ))}
           </Select>
         </FormControl>
+        <TextField
+          label="Từ ngày"
+          type="date"
+          size="small"
+          inputProps={{
+            max: filter.dateToRaw || undefined,
+          }}
+          InputLabelProps={{ shrink: true }}
+          value={filter.dateFrom ? filter.dateFromRaw : ""}
+          onChange={(e) =>
+            setFilter((prev) => ({
+              ...prev,
+              dateFromRaw: e.target.value,
+              dateFrom: formatDateToDDMMYYYY(e.target.value),
+              page: 1,
+            }))
+          }
+        />
+
+        <TextField
+          label="Đến ngày"
+          type="date"
+          size="small"
+          inputProps={{
+            min: filter.dateFromRaw || undefined,
+          }}
+          InputLabelProps={{ shrink: true }}
+          value={filter.dateTo ? filter.dateToRaw : ""}
+          onChange={(e) =>
+            setFilter((prev) => ({
+              ...prev,
+              dateToRaw: e.target.value,
+              dateTo: formatDateToDDMMYYYY(e.target.value),
+              page: 1,
+            }))
+          }
+        />
 
         <Button variant="contained" color="primary" onClick={handleRefresh}>
           Làm mới
@@ -200,7 +248,9 @@ function Requests() {
               <TableCell>Tên khách</TableCell>
               <TableCell>Dịch vụ</TableCell>
               <TableCell>Địa chỉ</TableCell>
-              <TableCell align="center">Trạng thái</TableCell>
+              <TableCell width={"max-content"} align="center">
+                Trạng thái
+              </TableCell>
               <TableCell align="center">Ngày yêu cầu</TableCell>
               <TableCell align="center">Hành động</TableCell>
             </TableRow>

@@ -461,9 +461,7 @@ export default function MessageModal({ open, onClose, requestId }) {
                       px: 1.5,
                       py: 1,
                       boxShadow:
-                        highlightMessageId === msg.id
-                          ? "0 0 0 2px #ffec99"
-                          : 1,
+                        highlightMessageId === msg.id ? "0 0 0 2px #ffec99" : 1,
                     }}
                   >
                     {!isMe && isFirstInGroup && (
@@ -587,10 +585,7 @@ export default function MessageModal({ open, onClose, requestId }) {
                             {msg.time}
                           </Typography>
                           {msg.status === "sent" && (
-                            <Typography
-                              variant="caption"
-                              sx={{ fontSize: 12 }}
-                            >
+                            <Typography variant="caption" sx={{ fontSize: 12 }}>
                               ✓
                             </Typography>
                           )}
@@ -711,7 +706,7 @@ export default function MessageModal({ open, onClose, requestId }) {
             </Box>
           )}
 
-          <Box sx={{ p: 1, display: "flex", alignItems: "flex-end", gap: 1 }}>
+          <Box sx={{ p: 1, display: "flex", alignItems: "center", gap: 1 }}>
             <IconButton component="label">
               <AttachFileIcon />
               <input
@@ -740,11 +735,15 @@ export default function MessageModal({ open, onClose, requestId }) {
               }}
               multiline
               maxRows={5}
-              disabled={sending}
+              disabled={false}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 20,
                   background: "#F0F2F5",
+                  padding: "10px 12px", // 🔥 giảm chiều cao
+                },
+                "& textarea": {
+                  lineHeight: "1.4",
                 },
               }}
             />
