@@ -22,3 +22,9 @@ export const formatDateTimeVN = (dateString) => {
 
   return `${hours}:${minutes} ${day}/${month}/${year}`;
 };
+
+export const formatDateToDDMMYYYY = (value) => {
+  if (!value) return null;
+  const [y, m, d] = value.split("-");
+  return `${d}/${m}/${y}`;
+};
