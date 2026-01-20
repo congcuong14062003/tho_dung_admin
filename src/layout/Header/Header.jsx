@@ -21,7 +21,6 @@ export default function Header() {
   const notifyRef = useRef(null);
   const userMenuRef = useRef(null);
   const socketRef = useRef(null);
-
   const {
     notifications,
     setNotifications,
@@ -41,6 +40,8 @@ export default function Header() {
     loadNotifications();
 
     socket.on("new_notification", (list) => {
+      console.log("new_notification: ", list);
+
       setNotifications((prev) => {
         const newItems = list
           .filter((item) => item.user_id == adminId)

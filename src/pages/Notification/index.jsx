@@ -89,7 +89,7 @@ function Notifications() {
         );
       }
 
-      console.log("item: ", item);
+      // console.log("item: ", item);
 
       if (item?.data?.url) {
         navigate(item?.data?.url);
