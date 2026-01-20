@@ -14,7 +14,7 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(function (payload) {
-  console.log("[FCM BACKGROUND]", payload);
+  // console.log("[FCM BACKGROUND]", payload);
 
   self.registration.showNotification(payload.notification.title, {
     body: payload.notification.body,

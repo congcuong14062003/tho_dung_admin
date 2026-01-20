@@ -21,7 +21,7 @@ export default function PendingDetail() {
   // 🔥 FETCH DETAIL
   // ================================
 
-  console.log("id: ", id);
+  // console.log("id: ", id);
 
   const fetchDetail = async () => {
     setLoading(true);

@@ -16,7 +16,7 @@ function FCMListener() {
     });
 
     onMessageListener().then((payload) => {
-      console.log("payload: ", payload);
+      // console.log("payload: ", payload);
       if (payload?.data?.sender_id === userInfo?.userId) {
         return;
       } else {
