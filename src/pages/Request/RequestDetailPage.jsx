@@ -33,6 +33,7 @@ import ConfirmModal from "../../components/ConfirmModal/ConfirmModal";
 import RejectConfirmModal from "../../components/ConfirmModal/RejectConfirmModal";
 import ReviewModal from "./ReviewModal";
 import RateReviewIcon from "@mui/icons-material/RateReview";
+import { formatCurrencyInput } from "../../utils/formatNumber";
 
 const pageStyle = {
   width: "100%",
@@ -49,7 +50,7 @@ const hexToRgba = (hex, opacity = 1) => {
   return result
     ? `rgba(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(
         result[3],
-        16
+        16,
       )}, ${opacity})`
     : hex;
 };
@@ -128,6 +129,8 @@ export default function RequestDetailPage() {
   // ⭐ State cho modal duyệt / từ chối báo giá (giống trang mẫu)
   const [approveQuoteModal, setApproveQuoteModal] = useState(false);
   const [rejectQuoteModal, setRejectQuoteModal] = useState(false);
+  const [managementFeeInput, setManagementFeeInput] = useState("");
+  const [managementFee, setManagementFee] = useState(0);
 
   const formatDate = (dateStr) =>
     dateStr ? new Date(dateStr).toLocaleString("vi-VN") : "—";
@@ -193,6 +196,7 @@ export default function RequestDetailPage() {
       const res = await requestApi.approveQuote({
         request_id: id,
         quotation_id: request.quotations.quotation_id,
+        management_fee: managementFee, // number sạch
       });
       if (res.status) {
         toast.success(res?.message || "Duyệt báo giá thành công");
@@ -487,8 +491,9 @@ export default function RequestDetailPage() {
                 </TableRow>
               ))}
 
+              {/* Tổng báo giá gốc */}
               <TableRow>
-                <TableCell sx={{ fontWeight: 600 }}>Tổng cộng</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Tổng báo giá</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>
                   {request.quotations.total_price.toLocaleString("vi-VN")}₫
                 </TableCell>
@@ -496,9 +501,52 @@ export default function RequestDetailPage() {
                 <TableCell />
                 <TableCell />
               </TableRow>
+
+              {/* Chi phí quản lý */}
+              {Number(request.quotations.management_fee || 0) > 0 && (
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 500, color: "text.secondary" }}>
+                    Chi phí quản lý dịch vụ
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 500, color: "text.secondary" }}>
+                    {request.quotations.management_fee.toLocaleString("vi-VN")}₫
+                  </TableCell>
+                  <TableCell />
+                  <TableCell />
+                  <TableCell />
+                </TableRow>
+              )}
+
+              {/* Tổng cuối – highlight */}
+              <TableRow>
+                <TableCell
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: 16,
+                    color: "success.main",
+                  }}
+                >
+                  Tổng tất cả chi phí
+                </TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: 16,
+                    color: "error.main",
+                  }}
+                >
+                  {request?.quotations?.final_total_price.toLocaleString(
+                    "vi-VN",
+                  )}
+                  ₫
+                </TableCell>
+                <TableCell />
+                <TableCell />
+                <TableCell />
+              </TableRow>
             </TableBody>
           </Table>
-          {request.quotations?.quotation_status === "replaced" && (
+          {request?.quotations?.quotation_status === "replaced" && (
             <>
               <Box
                 mt={2}
@@ -519,7 +567,7 @@ export default function RequestDetailPage() {
                     border: "1px solid",
                     borderColor: quoteStatusColor,
                     backgroundColor:
-                      request.quotations?.quotation_status === "replaced"
+                      request?.quotations?.quotation_status === "replaced"
                         ? "warning.light"
                         : "success.light",
                   }}
@@ -540,7 +588,7 @@ export default function RequestDetailPage() {
                     ml: 1,
                   }}
                 >
-                  {request.quotations?.reject_reason || "—"}
+                  {request?.quotations?.reject_reason || "—"}
                 </Typography>
               </Box>
             </>
@@ -779,11 +827,50 @@ export default function RequestDetailPage() {
       <ConfirmModal
         isOpen={approveQuoteModal}
         title="Xác nhận duyệt báo giá"
-        message={`Bạn có chắc muốn duyệt báo giá cho yêu cầu này?`}
+        message="Nhập chi phí quản lý dịch vụ trước khi duyệt"
         confirmText="Duyệt ngay"
+        color="green"
         onConfirm={handleApproveQuote}
         onCancel={() => setApproveQuoteModal(false)}
-      />
+      >
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Chi phí quản lý dịch vụ (₫)
+          </label>
+          <input
+            type="text"
+            value={managementFeeInput}
+            onChange={(e) => {
+              const { formatted, numberValue } = formatCurrencyInput(
+                e.target.value,
+              );
+
+              setManagementFeeInput(formatted);
+              setManagementFee(numberValue);
+            }}
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-green-200"
+            placeholder="Ví dụ: 50.000"
+          />
+
+          <div className="mt-3 text-sm">
+            <div>
+              Tổng báo giá gốc:{" "}
+              <strong>
+                {request?.quotations?.total_price.toLocaleString("vi-VN")}₫
+              </strong>
+            </div>
+            <div>
+              Tổng sau phí quản lý:{" "}
+              <strong>
+                {(
+                  request?.quotations?.total_price + managementFee
+                ).toLocaleString("vi-VN")}
+                ₫
+              </strong>
+            </div>
+          </div>
+        </div>
+      </ConfirmModal>
 
       {/* ⭐ Modal từ chối báo giá (có nhập lý do) */}
       <RejectConfirmModal

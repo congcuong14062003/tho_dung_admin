@@ -1,11 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Cookies from "js-cookie";
-import { jwtDecode } from "jwt-decode";
 import authApi from "../../service/api/authApi";
 import { useEffect, useRef, useState } from "react";
 import { Bell } from "lucide-react";
-import notificationApi from "../../service/api/notificationApi";
 import { connectSocket } from "../../utils/socket";
 import { removeFcmToken } from "../../firebase";
 import { getNotificationIcon } from "../../components/notificationIcon";

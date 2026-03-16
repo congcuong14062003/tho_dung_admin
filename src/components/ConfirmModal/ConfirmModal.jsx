@@ -11,6 +11,7 @@ const ConfirmModal = ({
   onCancel,
   loading = false,
   color = "blue", // blue, green, red
+  children,       // ⭐ thêm
 }) => {
   if (!isOpen) return null;
 
@@ -26,7 +27,13 @@ const ConfirmModal = ({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-xl max-w-sm w-full p-6">
           <h3 className="text-lg font-semibold mb-4">{title}</h3>
-          <p className="text-gray-700 mb-6">{message}</p>
+
+          {message && (
+            <p className="text-gray-700 mb-4">{message}</p>
+          )}
+
+          {/* ⭐ chỗ render nội dung custom (input phí quản lý) */}
+          {children && <div className="mb-6">{children}</div>}
 
           <div className="flex justify-end gap-3">
             <button
@@ -40,9 +47,30 @@ const ConfirmModal = ({
             <button
               onClick={onConfirm}
               disabled={loading}
-              className={`px-4 py-2 text-white rounded transition disabled:opacity-50 flex items-center gap-2 ${colorClasses[color] || colorClasses.blue}`}
+              className={`px-4 py-2 text-white rounded transition disabled:opacity-50 flex items-center gap-2 ${
+                colorClasses[color] || colorClasses.blue
+              }`}
             >
-              {loading && <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" opacity="0.3"/><path fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>}
+              {loading && (
+                <svg
+                  className="w-4 h-4 animate-spin"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                    opacity="0.3"
+                  />
+                  <path
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8z"
+                  />
+                </svg>
+              )}
               {confirmText}
             </button>
           </div>
