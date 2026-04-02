@@ -16,7 +16,7 @@ function FCMListener() {
     });
 
     onMessageListener().then((payload) => {
-      // console.log("payload: ", payload);
+      console.log("payload: ", payload);
       if (payload?.data?.sender_id === userInfo?.userId) {
         return;
       } else {
@@ -41,7 +41,7 @@ function FCMListener() {
             autoClose: 8000, // 10 giây cho FCM
             closeOnClick: true,
             pauseOnHover: true,
-          }
+          },
         );
       }
     });

@@ -38,8 +38,6 @@ export default function Header() {
     loadNotifications();
 
     socket.on("new_notification", (list) => {
-      console.log("new_notification: ", list);
-
       setNotifications((prev) => {
         const newItems = list
           .filter((item) => item.user_id == adminId)
