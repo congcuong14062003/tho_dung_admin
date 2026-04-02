@@ -90,11 +90,11 @@ function StatCard({ title, value, icon, color }) {
 export default function Dashboard() {
   const totalRequestCount = requestStatusStats.reduce(
     (sum, i) => sum + i.value,
-    0
+    0,
   );
 
   return (
-    <Box p={3}>
+    <Box p={3} sx={{ display: "none" }}>
       {/* ================= HEADER ================= */}
       <Stack mb={3}>
         <Typography variant="h5" fontWeight={700}>
@@ -173,9 +173,7 @@ export default function Dashboard() {
               {requestStatusStats.map((item) => (
                 <Box key={item.label}>
                   <Stack direction="row" justifyContent="space-between">
-                    <Typography variant="body2">
-                      {item.label}
-                    </Typography>
+                    <Typography variant="body2">{item.label}</Typography>
                     <Typography variant="body2" fontWeight={600}>
                       {item.value}
                     </Typography>

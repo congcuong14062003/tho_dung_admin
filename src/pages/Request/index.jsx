@@ -5,7 +5,8 @@ import { STATUS_CONFIG } from "../../config/statusConfig";
 import { toast } from "react-toastify";
 import { useLoading } from "../../context/LoadingContext";
 import { debounce } from "../../utils/functions";
-
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 import {
   Table,
   TableBody,
@@ -83,7 +84,7 @@ function Requests() {
         page: 1,
       }));
     }, 400),
-    []
+    [],
   );
 
   /** ===================== EFFECT ===================== */
@@ -114,6 +115,64 @@ function Requests() {
       dateFrom: null,
       dateTo: null,
     });
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      setLoading(true);
+
+      const res = await requestApi.exportFinance({
+        dateFrom: filter.dateFrom,
+        dateTo: filter.dateTo,
+      });
+
+      const data = res?.data || [];
+
+      if (!data.length) {
+        toast.info("Không có dữ liệu để xuất");
+        return;
+      }
+
+      // format dữ liệu
+      const rows = data.map((item) => ({
+        "Mã yêu cầu": item.request_id,
+        "Ngày yêu cầu": item.requested_date,
+        "Địa chỉ": item.address,
+        "Tên thợ": item.technician_name,
+        "Chi phí quản lý": item.company_income,
+        "Thu nhập thợ": item.technician_income,
+        "Tổng tiền": item.final_total_price,
+      }));
+
+      // tạo sheet
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+
+      // auto width cột
+      worksheet["!cols"] = [
+        { wch: 18 },
+        { wch: 15 },
+        { wch: 35 },
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 18 },
+      ];
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Doanh thu");
+
+      const excelBuffer = XLSX.write(workbook, {
+        bookType: "xlsx",
+        type: "array",
+      });
+
+      saveAs(new Blob([excelBuffer]), "bao-cao-doanh-thu.xlsx");
+    } catch (error) {
+      console.error(error);
+      toast.error("Xuất Excel thất bại");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const renderStatus = (statusKey) => {
@@ -225,6 +284,10 @@ function Requests() {
 
         <Button variant="contained" color="primary" onClick={handleRefresh}>
           Làm mới
+        </Button>
+
+        <Button variant="contained" color="success" onClick={handleExportExcel}>
+          Xuất Excel doanh thu
         </Button>
       </div>
 

@@ -12,6 +12,8 @@ const requestApi = {
     axiosClient.post("/requests/quotation/admin-approve", data), // ✅ API duyệt báo giá
 
   getReviewByRequest: (id) => axiosClient.get(`/reviews/request/${id}`),
+
+  exportFinance: (data) => axiosClient.post("/requests/finance/export", data),
 };
 
 export default requestApi;

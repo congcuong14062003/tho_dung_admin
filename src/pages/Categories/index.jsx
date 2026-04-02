@@ -52,6 +52,8 @@ function Categories() {
       if (res.status && res?.data?.data) {
         setCategories(res?.data?.data);
         setTotalRecord(res?.data?.paging?.total || 0);
+      } else {
+        toast.error(res?.data?.message || "Lỗi khi lấy danh mục");
       }
     } catch (err) {
       console.error("Lỗi lấy danh mục:", err);
@@ -70,7 +72,7 @@ function Categories() {
         page: 1,
       }));
     }, 400),
-    []
+    [],
   );
 
   /** ===================== ACTIONS ===================== */

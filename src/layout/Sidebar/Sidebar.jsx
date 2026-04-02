@@ -19,7 +19,7 @@ export default function Sidebar() {
   };
 
   const menuItems = [
-    { path: "/", label: "Dashboard", icon: <Home size={18} /> },
+    { path: "/", label: "Trang chủ", icon: <Home size={18} /> },
     { path: "/categories", label: "Danh mục", icon: <Folder size={18} /> },
     { path: "/services", label: "Dịch vụ", icon: <Wrench size={18} /> },
     { path: "/customers", label: "Khách", icon: <User size={18} /> },

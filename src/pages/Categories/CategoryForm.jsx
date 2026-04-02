@@ -70,9 +70,10 @@ export default function CategoryForm({ open, onClose, category }) {
 
   // 🖼️ File change
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
+    if (!file) return;
     setFormData((prev) => ({ ...prev, icon: file }));
-    if (file) setPreview(URL.createObjectURL(file));
+    setPreview(URL.createObjectURL(file));
   };
 
   // Submit
@@ -81,7 +82,11 @@ export default function CategoryForm({ open, onClose, category }) {
       toast.warn("Tên danh mục không được để trống!");
       return;
     }
-    if (!category && !formData.icon) {
+
+    console.log("category: ", category);
+    console.log("icon: ", formData?.icon);
+
+    if (!formData.icon) {
       toast.warn("Vui lòng chọn ảnh đại diện!");
       return;
     }
