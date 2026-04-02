@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -135,13 +135,7 @@ export default function RequestDetailPage() {
   const formatDate = (dateStr) =>
     dateStr ? new Date(dateStr).toLocaleString("vi-VN") : "—";
 
-  useEffect(() => {
-    if (!id) return;
-    fetchDetail();
-    fetchPaymentDetail();
-  }, [id]);
-
-  const fetchDetail = async () => {
+  const fetchDetail = useCallback(async () => {
     setLoading(true);
     try {
       const res = await requestApi.getDetail(id);
@@ -155,16 +149,22 @@ export default function RequestDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
-  const fetchPaymentDetail = async () => {
+  const fetchPaymentDetail = useCallback(async () => {
     try {
       const res = await paymentApi.getDetail(id);
       if (res.status && res.data) setPaymentDetail(res.data);
     } catch (err) {
       console.log("Lỗi payment:", err);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    fetchDetail();
+    fetchPaymentDetail();
+  }, [fetchDetail, fetchPaymentDetail, id]);
 
   const handleApprovePayment = async () => {
     setLoading(true);
@@ -182,7 +182,7 @@ export default function RequestDetailPage() {
       fetchDetail();
       fetchPaymentDetail();
     } catch (err) {
-      toast.error("Lỗi duyệt payment");
+      toast.error(err?.response?.data?.message || "Lỗi duyệt thanh toán");
     } finally {
       setLoading(false);
     }
@@ -205,7 +205,7 @@ export default function RequestDetailPage() {
       }
       fetchDetail();
     } catch (err) {
-      toast.error("Lỗi duyệt báo giá");
+      toast.error(err?.response?.data?.message || "Lỗi duyệt báo giá");
     } finally {
       setLoading(false);
       setApproveQuoteModal(false);
@@ -229,7 +229,7 @@ export default function RequestDetailPage() {
       }
       fetchDetail();
     } catch (err) {
-      toast.error("Lỗi từ chối báo giá");
+      toast.error(err?.response?.data?.message || "Lỗi từ chối báo giá");
     } finally {
       setLoading(false);
       setRejectQuoteModal(false);

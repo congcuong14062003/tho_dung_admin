@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import { requestForToken, onMessageListener } from "../firebase";
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
 
 function FCMListener() {
   const { userInfo } = useAuth();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { markAsRead } = useNotification();
 
   useEffect(() => {
@@ -30,7 +30,9 @@ function FCMListener() {
                 await markAsRead(Number(notificationId));
               }
 
-              if (url) navigate(url);
+              if (url) {
+                window.location.href = url;
+              }
             }}
             style={{ cursor: "pointer" }}
           >
