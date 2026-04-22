@@ -47,7 +47,7 @@ function Notifications() {
           res.data.data.map((n) => ({
             ...n,
             is_read: Boolean(n.is_read),
-          }))
+          })),
         );
         setTotalRecord(res?.data?.paging?.total || 0);
       }
@@ -67,7 +67,7 @@ function Notifications() {
         page: 1,
       }));
     }, 400),
-    []
+    [],
   );
 
   /** ===================== ACTIONS ===================== */
@@ -85,7 +85,7 @@ function Notifications() {
       if (!item.is_read) {
         await markAsRead(item.id);
         setNotifications((prev) =>
-          prev.map((n) => (n.id === item.id ? { ...n, is_read: true } : n))
+          prev.map((n) => (n.id === item.id ? { ...n, is_read: true } : n)),
         );
       }
 
@@ -96,6 +96,35 @@ function Notifications() {
       }
     } catch (err) {
       console.error("Handle notification click error:", err);
+    }
+  };
+
+  const handleDeleteNotification = async (e, itemId) => {
+    e.stopPropagation();
+    try {
+      setLoading(true);
+      await notificationApi.deleteNotification(itemId);
+      // setNotifications((prev) => prev.filter((n) => n.id !== itemId));
+      // setTotalRecord((prev) => prev - 1);
+      handleRefresh();
+    } catch (err) {
+      console.error("Lỗi xóa thông báo:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteAllNotifications = async () => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa tất cả thông báo?")) {
+      try {
+        setLoading(true);
+        await notificationApi.deleteAllNotifications();
+        handleRefresh();
+      } catch (err) {
+        console.error("Lỗi xóa tất cả thông báo:", err);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -126,6 +155,15 @@ function Notifications() {
 
         <Button variant="contained" color="primary" onClick={handleRefresh}>
           Làm mới
+        </Button>
+
+        <Button
+          variant="contained"
+          color="error"
+          onClick={handleDeleteAllNotifications}
+          disabled={notifications.length === 0}
+        >
+          Xóa tất cả
         </Button>
       </div>
 
@@ -186,18 +224,29 @@ function Notifications() {
                   </TableCell>
 
                   <TableCell align="center">
-                    {!item.is_read && (
+                    <div className="flex gap-2 justify-center">
+                      {!item.is_read && (
+                        <Button
+                          variant="contained"
+                          size="small"
+                          color="primary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleClickNotification(item);
+                          }}
+                        >
+                          Xem
+                        </Button>
+                      )}
                       <Button
                         variant="contained"
                         size="small"
-                        color="primary"
-                        onClick={(e) => {
-                          handleClickNotification(item);
-                        }}
+                        color="error"
+                        onClick={(e) => handleDeleteNotification(e, item.id)}
                       >
-                        Xem
+                        Xóa
                       </Button>
-                    )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
