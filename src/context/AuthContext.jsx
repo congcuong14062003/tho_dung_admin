@@ -1,62 +1,51 @@
-import { createContext, useContext, useState, useEffect } from "react";
+// features/auth/authSlice.js
+import { createSlice } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
-import { jwtDecode } from "jwt-decode";
-
-const AuthContext = createContext();
-
-export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(Cookies.get("token"));
-  const [userInfo, setUserInfo] = useState(null);
-
-  const login = (newToken) => {
-    const payload = jwtDecode(newToken);   // 🔥 decode đúng token mới
-
-    if (payload?.exp) {
-      const expires = new Date(payload.exp * 1000);
-      Cookies.set("token", newToken, { expires });
-    } else {
-      Cookies.set("token", newToken);
-    }
-
-    setToken(newToken);
-    setUserInfo({
-      userId: payload.id,
-      phone: payload.phone,
-      role: payload.role,
-      username: payload.username,   // giờ sẽ ra "Cường admin" đúng font
-      avatar: payload.avatar,
-    });
-  };
-
-  const logout = () => {
-    Cookies.remove("token");
-    setToken(null);
-    setUserInfo(null);
-  };
-
-  useEffect(() => {
-    const saved = Cookies.get("token");
-    if (saved) {
-      setToken(saved);
-      const payload = jwtDecode(saved);
-
-      if (payload) {
-        setUserInfo({
-          userId: payload.id,
-          phone: payload.phone,
-          role: payload.role,
-          username: payload.username,
-          avatar: payload.avatar,
-        });
-      }
-    }
-  }, []);
-
-  return (
-    <AuthContext.Provider value={{ token, userInfo, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+const initialState = {
+  token: Cookies.get("token") || null,
+  userInfo: null,
 };
 
-export const useAuth = () => useContext(AuthContext);
+const authSlice = createSlice({
+  name: "auth",
+  initialState,
+  reducers: {
+    loginSuccess: (state, action) => {
+      const { token, user } = action.payload;
+
+      // lưu token
+      Cookies.set("token", token);
+
+      state.token = token;
+
+      // dùng data từ API
+      state.userInfo = {
+        userId: user.id,
+        phone: user.phone,
+        role: user.role,
+        username: user.full_name,
+        avatar: user.avatar,
+      };
+    },
+
+    logout: (state) => {
+      Cookies.remove("token");
+      state.token = null;
+      state.userInfo = null;
+    },
+
+    setUser: (state, action) => {
+      const user = action.payload;
+      state.userInfo = {
+        userId: user.id,
+        phone: user.phone,
+        role: user.role,
+        username: user.full_name,
+        avatar: user.avatar || user?.avatar_link,
+      };
+    },
+  },
+});
+
+export const { loginSuccess, logout, setUser } = authSlice.actions;
+export default authSlice.reducer;

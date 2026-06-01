@@ -1,19 +1,19 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { loginSuccess } from "../../context/AuthContext";
 import authApi from "../../service/api/authApi";
 import { toast } from "react-toastify";
 import { requestForToken } from "../../firebase";
 import { connectSocket } from "../../utils/socket";
+import { useDispatch } from "react-redux";
 
 export default function Login() {
-  const { login } = useAuth();
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const dispatch = useDispatch();
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -37,9 +37,14 @@ export default function Login() {
       });
 
       if (res.status) {
-        login(res.data.token);
+        dispatch(
+          loginSuccess({
+            token: res.data.token,
+            user: res.data.adminInfor,
+          }),
+        );
+        connectSocket(); // 🔥 connect lại sau khi có token
         navigate("/");
-        connectSocket();    // 🔥 connect lại sau khi có token
       } else {
         toast.error(res.message);
       }

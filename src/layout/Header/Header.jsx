@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
 import Cookies from "js-cookie";
 import authApi from "../../service/api/authApi";
 import { useEffect, useRef, useState } from "react";
@@ -8,9 +7,18 @@ import { connectSocket } from "../../utils/socket";
 import { removeFcmToken } from "../../firebase";
 import { getNotificationIcon } from "../../components/notificationIcon";
 import { useNotification } from "../../context/NotificationContext";
+
+// 🔥 Redux
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../../context/AuthContext";
+
 export default function Header() {
   const navigate = useNavigate();
-  const { logout, userInfo } = useAuth();
+
+  // 🔥 Redux thay cho useAuth
+  const dispatch = useDispatch();
+  const { userInfo } = useSelector((state) => state.auth);
+
   const adminId = userInfo?.userId;
 
   const [openNotify, setOpenNotify] = useState(false);
@@ -19,6 +27,7 @@ export default function Header() {
   const notifyRef = useRef(null);
   const userMenuRef = useRef(null);
   const socketRef = useRef(null);
+
   const {
     notifications,
     setNotifications,
@@ -105,8 +114,10 @@ export default function Header() {
       console.error("Logout error:", err);
     }
 
-    logout();
-    Cookies.remove("token");
+    // 🔥 Redux logout
+    dispatch(logout());
+
+    Cookies.remove("token"); // có thể bỏ nếu đã xử lý trong slice
     navigate("/login");
   };
 

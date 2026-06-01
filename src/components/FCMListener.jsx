@@ -2,11 +2,11 @@ import { useEffect } from "react";
 import { toast } from "react-toastify";
 // import { useNavigate } from "react-router-dom";
 import { requestForToken, onMessageListener } from "../firebase";
-import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
+import { useSelector } from "react-redux";
 
 function FCMListener() {
-  const { userInfo } = useAuth();
+  const { userInfo } = useSelector((state) => state.auth);
   // const navigate = useNavigate();
   const { markAsRead } = useNotification();
 

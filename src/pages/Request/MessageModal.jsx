@@ -19,8 +19,8 @@ import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline"; // Icon lỗi
 import { useEffect, useRef, useState, useMemo } from "react";
 import { connectSocket } from "../../utils/socket";
 import messageApi from "../../service/api/messageApi";
-import { useAuth } from "../../context/AuthContext";
 import { generateId } from "../../utils/crypto";
+import { useSelector } from "react-redux";
 
 const MY_MESSAGE_BG = "linear-gradient(135deg, #0084FF 0%, #006AFF 100%)";
 const OTHER_MESSAGE_BG = "#FFFFFF";
@@ -28,7 +28,7 @@ const OTHER_MESSAGE_BG = "#FFFFFF";
 export default function MessageModal({ open, onClose, requestId }) {
   const refInput = useRef(null);
   const socket = connectSocket();
-  const { userInfo } = useAuth();
+  const { userInfo } = useSelector((state) => state.auth);
 
   const messageRefs = useRef({});
   const messageListRef = useRef(null);
@@ -214,15 +214,17 @@ export default function MessageModal({ open, onClose, requestId }) {
       setDataMessages((prev) => ({
         ...prev,
         message: prev.message.map((m) =>
-          m.id === tempId ? { ...m, status: "sent" } : m
+          m.id === tempId ? { ...m, status: "sent" } : m,
         ),
       }));
     } catch (err) {
+      console.log("Error: ", err);
+
       // Lỗi → đánh dấu error
       setDataMessages((prev) => ({
         ...prev,
         message: prev.message.map((m) =>
-          m.id === tempId ? { ...m, status: "error" } : m
+          m.id === tempId ? { ...m, status: "error" } : m,
         ),
       }));
     } finally {
@@ -436,14 +438,14 @@ export default function MessageModal({ open, onClose, requestId }) {
                         highlightMessageId === msg.id
                           ? "#FFF3CD"
                           : isMe
-                          ? MY_MESSAGE_BG
-                          : OTHER_MESSAGE_BG,
+                            ? MY_MESSAGE_BG
+                            : OTHER_MESSAGE_BG,
                       color:
                         highlightMessageId === msg.id
                           ? "#000"
                           : isMe
-                          ? "#fff"
-                          : "#000",
+                            ? "#fff"
+                            : "#000",
                       transition: "background-color 0.3s ease",
                       borderRadius: isMe
                         ? {
